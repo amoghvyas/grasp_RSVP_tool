@@ -7,20 +7,29 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 /// 2. Viva and exam-style questions with model answers
 ///
 /// Both features support English and Hinglish output modes.
-/// Uses Gemini 2.0 Flash by default (fast, high quality, generous free tier).
+/// Uses Gemini 2.5 Flash by default (free tier, fast, high quality).
 class GeminiService {
   GenerativeModel? _model;
+  String _apiKey = '';
   bool _isInitialized = false;
+
+  /// Models to try in order — if one hits quota, fall back to the next.
+  static const _fallbackModels = [
+    'gemini-2.5-flash',
+    'gemini-2.5-flash-lite',
+    'gemini-1.5-flash',
+  ];
 
   /// Whether the service has been initialized with a valid API key.
   bool get isInitialized => _isInitialized;
 
   /// Initializes the Gemini model with the provided API key.
   ///
-  /// [modelName] defaults to 'gemini-2.0-flash' which offers the best
-  /// balance of speed, quality, and free-tier availability.
-  void initialize(String apiKey, {String modelName = 'gemini-2.0-flash'}) {
+  /// [modelName] defaults to 'gemini-2.5-flash' which is the primary
+  /// free-tier model as of April 2026.
+  void initialize(String apiKey, {String modelName = 'gemini-2.5-flash'}) {
     if (apiKey.isEmpty) return;
+    _apiKey = apiKey;
     _model = GenerativeModel(
       model: modelName,
       apiKey: apiKey,
@@ -131,7 +140,24 @@ $text
   // ──────────────────────────────────────────────────────────────────
 
   /// Sends a prompt to the Gemini API and returns the response text.
+  ///
+  /// If the current model hits a quota/rate limit, automatically retries
+  /// with fallback models before giving up.
   Future<String> _generate(String prompt) async {
+    // First, try the currently configured model
+    try {
+      return await _sendRequest(prompt);
+    } on Exception catch (e) {
+      // If it's a quota error, try fallback models
+      if (_isQuotaError(e)) {
+        return _generateWithFallback(prompt);
+      }
+      rethrow;
+    }
+  }
+
+  /// Sends the prompt to the currently configured model.
+  Future<String> _sendRequest(String prompt) async {
     try {
       final content = [Content.text(prompt)];
       final response = await _model!.generateContent(content);
@@ -142,9 +168,48 @@ $text
       return text;
     } on GenerativeAIException catch (e) {
       throw Exception('Gemini API error: ${e.message}');
-    } catch (e) {
-      throw Exception('Failed to generate content: $e');
     }
+  }
+
+  /// Tries each model in the fallback list until one succeeds.
+  Future<String> _generateWithFallback(String prompt) async {
+    for (final modelName in _fallbackModels) {
+      try {
+        // Temporarily switch to the fallback model
+        _model = GenerativeModel(
+          model: modelName,
+          apiKey: _apiKey,
+          generationConfig: GenerationConfig(
+            temperature: 0.3,
+            topP: 0.95,
+            maxOutputTokens: 8192,
+          ),
+        );
+
+        final result = await _sendRequest(prompt);
+        // If it worked, keep using this model
+        return result;
+      } on Exception catch (e) {
+        if (!_isQuotaError(e)) rethrow;
+        // Quota error on this model too — try next one
+        continue;
+      }
+    }
+
+    throw Exception(
+      'All Gemini models are at quota. Please wait a few minutes and try again, '
+      'or check your API key at https://aistudio.google.com/apikey',
+    );
+  }
+
+  /// Returns true if the exception is a quota/rate-limit error.
+  bool _isQuotaError(Exception e) {
+    final msg = e.toString().toLowerCase();
+    return msg.contains('quota') ||
+        msg.contains('rate') ||
+        msg.contains('limit') ||
+        msg.contains('429') ||
+        msg.contains('resource_exhausted');
   }
 
   /// Throws if the service hasn't been initialized with an API key.
@@ -157,3 +222,4 @@ $text
     }
   }
 }
+
