@@ -160,7 +160,7 @@ $text
       }
       return text;
     } on GenerativeAIException catch (e) {
-      throw Exception(_getFriendlyErrorMessage(e.message ?? 'Unknown error'));
+      throw Exception(_getFriendlyErrorMessage(e.message));
     } catch (e) {
       throw Exception(_getFriendlyErrorMessage(e.toString()));
     }
