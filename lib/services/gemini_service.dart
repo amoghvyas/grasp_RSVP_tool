@@ -58,23 +58,16 @@ class GeminiService {
         : 'English';
 
     final prompt = '''
-You are an expert academic tutor who specializes in helping university students prepare for exams. Your summaries are legendary for being complete yet concise, and students who study from them consistently score top marks.
-
-Summarize the following text for a student preparing for viva and written exams.
+You are an expert academic tutor. Summarize the following text for a student preparing for exams. 
 
 STRICT REQUIREMENTS:
-1. Use clear section headings with ## markdown formatting
-2. Highlight ALL important terminologies, key terms, and technical words in **bold** on first use
-3. Structure content as concise bullet points — no long paragraphs
-4. Include key definitions, formulas, relationships, and processes
-5. Add memory aids (mnemonics, analogies, or easy mental models) wherever helpful
-6. Maintain logical flow — concepts should build on each other
-7. Cover EVERY important point — missing a key concept is unacceptable
-8. Keep explanations crisp and exam-answer-ready — a student should be able to directly use these points in an answer
-9. At the end, include a "🔑 Key Terms Glossary" section listing all important terms with one-line definitions
-10. Language: $language
+1. BE EXTREMELY CONCISE. The final summary must be under 150 words.
+2. Use exactly 3-4 section headings with ## markdown formatting.
+3. Highlight only the most CRITICAL technical terms in **bold**.
+4. Use short, punchy bullet points.
+5. Language: $language
 
-DO NOT add any preamble like "Here is the summary". Start directly with the content.
+DO NOT add any preamble. Start directly with the summary content.
 
 TEXT TO SUMMARIZE:
 $text
@@ -167,8 +160,29 @@ $text
       }
       return text;
     } on GenerativeAIException catch (e) {
-      throw Exception('Gemini API error: ${e.message}');
+      throw Exception(_getFriendlyErrorMessage(e.message ?? 'Unknown error'));
+    } catch (e) {
+      throw Exception(_getFriendlyErrorMessage(e.toString()));
     }
+  }
+
+  /// Maps technical Gemini errors to simple, sweet messages.
+  String _getFriendlyErrorMessage(String technicalError) {
+    final msg = technicalError.toLowerCase();
+    
+    if (msg.contains('quota') || msg.contains('429')) {
+      return 'Oops! Our AI is a bit busy right now. Please try again in 10-20 seconds!';
+    }
+    
+    if (msg.contains('overloaded') || msg.contains('service unavailable') || msg.contains('503')) {
+      return 'Oops! The server is a bit overcrowded at the moment. Please wait a few seconds and try again.';
+    }
+
+    if (msg.contains('invalid api key')) {
+      return 'API Key issue detected. Please check your settings.';
+    }
+
+    return 'Oops! Something went wrong with the AI. Let\'s try that again in a moment.';
   }
 
   /// Tries each model in the fallback list until one succeeds.

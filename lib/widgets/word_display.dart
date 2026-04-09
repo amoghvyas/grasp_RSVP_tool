@@ -97,13 +97,12 @@ class WordDisplay extends StatelessWidget {
   ) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      mainAxisSize: MainAxisSize.min,
+      mainAxisSize: MainAxisSize.max, // Take full width to ensure proper centering
       crossAxisAlignment: CrossAxisAlignment.baseline,
       textBaseline: TextBaseline.alphabetic,
       children: [
         // ── Left half: "before" text, right-aligned ──────────────
-        SizedBox(
-          width: fontSize * 4, // Generous width for long left segments
+        Expanded(
           child: Text(
             segments.before,
             style: normalStyle,
@@ -120,8 +119,7 @@ class WordDisplay extends StatelessWidget {
         ),
 
         // ── Right half: "after" text, left-aligned ──────────────
-        SizedBox(
-          width: fontSize * 4,
+        Expanded(
           child: Text(
             segments.after,
             style: normalStyle,

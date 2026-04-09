@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:js_interop';
+import 'package:web/web.dart' as web;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -26,11 +29,30 @@ class _InputScreenState extends State<InputScreen> {
   final _textController = TextEditingController();
   String? _errorMessage;
   bool _isLoading = false;
+  bool _isInstallable = false;
+  Timer? _installTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    // Poll for installability every 2 seconds
+    _installTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
+      final isInstallable = (web.window as dynamic).isPWAInstallable == true;
+      if (isInstallable != _isInstallable) {
+        setState(() => _isInstallable = isInstallable);
+      }
+    });
+  }
 
   @override
   void dispose() {
     _textController.dispose();
+    _installTimer?.cancel();
     super.dispose();
+  }
+
+  void _triggerInstall() {
+    (web.window as dynamic).promptInstall();
   }
 
   @override
@@ -44,7 +66,11 @@ class _InputScreenState extends State<InputScreen> {
       body: AnimatedBackground(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
+            // Tighter padding on mobile to save space
+            padding: EdgeInsets.symmetric(
+              horizontal: screenWidth < 600 ? 16 : 24,
+              vertical: 48,
+            ),
             child: ConstrainedBox(
               constraints: BoxConstraints(
                 maxWidth: screenWidth > 800 ? 660 : double.infinity,
@@ -83,7 +109,15 @@ class _InputScreenState extends State<InputScreen> {
                       child: _buildFileUpload(provider),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  
+                  // PWA Install Prompt (Mobile & Compatible Browsers)
+                  if (_isInstallable) ...[
+                    const SizedBox(height: 24),
+                    FadeSlideIn(
+                      delayMs: 250,
+                      child: _buildInstallButton(),
+                    ),
+                  ],
 
                   // ── Error Message ──────────────────────────────────
                   if (_errorMessage != null)
@@ -128,6 +162,13 @@ class _InputScreenState extends State<InputScreen> {
                     ),
                   ],
 
+                  const SizedBox(height: 60),
+                  
+                  // ── Footer / Attribution ───────────────────────────
+                  FadeSlideIn(
+                    delayMs: 400,
+                    child: _buildFooter(),
+                  ),
                   const SizedBox(height: 48),
                 ],
               ),
@@ -599,6 +640,125 @@ class _InputScreenState extends State<InputScreen> {
     } finally {
       setState(() => _isLoading = false);
     }
+  }
+
+  Widget _buildInstallButton() {
+    return _HoverScale(
+      child: InkWell(
+        onTap: _triggerInstall,
+        borderRadius: BorderRadius.circular(16),
+        child: GlassCard(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF00D9FF).withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.install_mobile_rounded,
+                  color: Color(0xFF00D9FF),
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Install Grasp App',
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      'Add to your home screen for a faster experience',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: Colors.white.withValues(alpha: 0.5),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: Colors.white24,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFooter() {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Developed by ',
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                color: Colors.white.withValues(alpha: 0.3),
+              ),
+            ),
+            Text(
+              'Amogh',
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF6C63FF).withValues(alpha: 0.8),
+              ),
+            ),
+            Text(
+              ' using ',
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                color: Colors.white.withValues(alpha: 0.3),
+              ),
+            ),
+            ShaderMask(
+              shaderCallback: (bounds) => const LinearGradient(
+                colors: [Color(0xFF00D9FF), Color(0xFFFF6B9D)],
+              ).createShader(bounds),
+              child: Text(
+                'Antigravity',
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            'OPEN SOURCE 2026',
+            style: GoogleFonts.inter(
+              fontSize: 9,
+              fontWeight: FontWeight.w800,
+              color: Colors.white.withValues(alpha: 0.2),
+              letterSpacing: 2,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
 

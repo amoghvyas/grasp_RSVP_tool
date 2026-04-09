@@ -44,6 +44,39 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 </head>
 <body>
+  <script>
+    let deferredPrompt;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      // Prevent the mini-infobar from appearing on mobile
+      e.preventDefault();
+      // Stash the event so it can be triggered later
+      deferredPrompt = e;
+      
+      // Notify Flutter that the app is installable
+      // We'll poll this from Dart or use a custom event
+      window.isPWAInstallable = true;
+    });
+
+    window.promptInstall = async () => {
+      if (!deferredPrompt) {
+        console.log('Installation not available or already installed.');
+        return;
+      }
+      
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log(`User response to install: ${outcome}`);
+      
+      if (outcome === 'accepted') {
+        deferredPrompt = null;
+        window.isPWAInstallable = false;
+      }
+    };
+
+    // Initialize as false
+    window.isPWAInstallable = false;
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
