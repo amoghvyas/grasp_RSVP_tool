@@ -51,7 +51,113 @@ class _InputScreenState extends State<InputScreen> {
   }
 
   void _triggerInstall() {
-    (web.window as dynamic).promptInstall();
+    if (_isInstallable) {
+      (web.window as dynamic).promptInstall();
+    } else {
+      _showInstallInstructions();
+    }
+  }
+
+  void _showInstallInstructions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1A1A2E),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.white10,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'How to Install Grasp',
+              style: GoogleFonts.inter(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildInstructionStep(
+              '1',
+              'Tap the "Share" or "Browser Menu" button',
+            ),
+            _buildInstructionStep(
+              '2',
+              'Select "Add to Home Screen"',
+            ),
+            _buildInstructionStep(
+              '3',
+              'Grasp will now appear as an app on your device!',
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6C63FF),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.all(16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text('Got it!'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInstructionStep(String number, String text) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        children: [
+          Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              color: const Color(0xFF6C63FF).withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                number,
+                style: const TextStyle(
+                  color: Color(0xFF6C63FF),
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              text,
+              style: GoogleFonts.inter(
+                color: Colors.white.withValues(alpha: 0.7),
+                fontSize: 14,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -116,14 +222,12 @@ class _InputScreenState extends State<InputScreen> {
                     child: _buildCompactAttribution(),
                   ),
                   
-                  // PWA Install Prompt (Mobile & Compatible Browsers)
-                  if (_isInstallable) ...[
-                    const SizedBox(height: 16),
-                    FadeSlideIn(
-                      delayMs: 300,
-                      child: _buildInstallButton(),
-                    ),
-                  ],
+                  // PWA Install Button (Now always visible)
+                  const SizedBox(height: 20),
+                  FadeSlideIn(
+                    delayMs: 300,
+                    child: _buildInstallButton(),
+                  ),
 
                   // ── Error Message ──────────────────────────────────
                   if (_errorMessage != null)
@@ -643,50 +747,13 @@ class _InputScreenState extends State<InputScreen> {
 
   Widget _buildCompactAttribution() {
     return Center(
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Developed by ',
-                style: GoogleFonts.inter(
-                  fontSize: 11,
-                  color: Colors.white.withValues(alpha: 0.2),
-                ),
-              ),
-              Text(
-                'Amogh',
-                style: GoogleFonts.inter(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF6C63FF).withValues(alpha: 0.6),
-                ),
-              ),
-              Text(
-                ' using ',
-                style: GoogleFonts.inter(
-                  fontSize: 11,
-                  color: Colors.white.withValues(alpha: 0.2),
-                ),
-              ),
-              ShaderMask(
-                shaderCallback: (bounds) => const LinearGradient(
-                  colors: [Color(0xFF00D9FF), Color(0xFFFF6B9D)],
-                ).createShader(bounds),
-                child: Text(
-                  'Antigravity',
-                  style: GoogleFonts.inter(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
+      child: Text(
+        'Developed with ❤️ by Amogh using Antigravity',
+        style: GoogleFonts.inter(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          color: Colors.white.withValues(alpha: 0.25),
+        ),
       ),
     );
   }
