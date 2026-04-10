@@ -215,19 +215,9 @@ class _InputScreenState extends State<InputScreen> {
                     ),
                   ),
                   
-                  // Permanent Attribution (Visible all the time)
+                  // PWA Install Button (Now centered and professional)
                   const SizedBox(height: 16),
-                  FadeSlideIn(
-                    delayMs: 250,
-                    child: _buildCompactAttribution(),
-                  ),
-                  
-                  // PWA Install Button (Now always visible)
-                  const SizedBox(height: 20),
-                  FadeSlideIn(
-                    delayMs: 300,
-                    child: _buildInstallButton(),
-                  ),
+                  _buildInstallButton(),
 
                   // ── Error Message ──────────────────────────────────
                   if (_errorMessage != null)
@@ -272,6 +262,10 @@ class _InputScreenState extends State<InputScreen> {
                     ),
                   ],
 
+                  const SizedBox(height: 60),
+                  
+                  // ── Footer / Attribution ───────────────────────────
+                  _buildCompactAttribution(),
                   const SizedBox(height: 48),
                 ],
               ),
@@ -759,36 +753,37 @@ class _InputScreenState extends State<InputScreen> {
   }
 
   Widget _buildInstallButton() {
-    return _HoverScale(
-      child: InkWell(
-        onTap: _triggerInstall,
-        borderRadius: BorderRadius.circular(16),
-        child: GlassCard(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.install_mobile_rounded,
-                color: Color(0xFF00D9FF),
-                size: 18,
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'Install Grasp WebApp',
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white.withValues(alpha: 0.8),
+    return Center(
+      child: _HoverScale(
+        child: InkWell(
+          onTap: _triggerInstall,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white10),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.add_to_home_screen_rounded,
+                  color: Color(0xFF00D9FF),
+                  size: 16,
                 ),
-              ),
-              const SizedBox(width: 8),
-              const Icon(
-                Icons.chevron_right_rounded,
-                color: Colors.white12,
-                size: 16,
-              ),
-            ],
+                const SizedBox(width: 10),
+                Text(
+                  'Install Grasp WebApp',
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white.withValues(alpha: 0.7),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
