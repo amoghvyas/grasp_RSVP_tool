@@ -64,7 +64,6 @@ jobs:
         run: |
           flutter build web --release \
             --base-href="${{ steps.pages.outputs.base_path }}/" \
-            --web-renderer=canvaskit \
             --dart-define=GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"
 
       - name: Upload artifact
