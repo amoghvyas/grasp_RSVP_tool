@@ -63,7 +63,7 @@ jobs:
       - name: Build Flutter Web
         run: |
           flutter build web --release \
-            --base-href="${{ steps.pages.outputs.base_path }}/" \
+            --base-href="/" \
             --dart-define=GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"
 
       - name: Upload artifact
