@@ -708,7 +708,7 @@ class _InputScreenState extends State<InputScreen> {
               ),
               const SizedBox(width: 12),
               Text(
-                'Install Grasp App',
+                'Install Grasp WebApp',
                 style: GoogleFonts.inter(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
