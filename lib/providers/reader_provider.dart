@@ -75,8 +75,15 @@ class ReaderProvider extends ChangeNotifier {
 
   // ── AI STUDY TOOLS ─────────────────────────────────────────────
 
-  /// Legacy alias used by main.dart
-  void initializeAi(String apiKey) => updateApiKey(apiKey);
+  void updateApiKey(String key) {
+    if (_state.aiProvider == AiProvider.gemini) {
+      _geminiService.initialize(key);
+    } else {
+      _openRouterService.initialize(key);
+    }
+    // Recheck initialization status
+    notifyListeners();
+  }
 
   Future<void> generateSummary({bool hinglish = false}) async {
     if (_state.rawText.isEmpty) return;
