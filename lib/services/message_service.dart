@@ -13,7 +13,6 @@ class MessageService {
       url,
       headers: {
         'Content-Type': 'application/json',
-        'origin': 'http://localhost', // EmailJS often requires an origin for Web
       },
       body: jsonEncode({
         'service_id': _serviceId,

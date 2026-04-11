@@ -168,7 +168,7 @@ class _DeveloperOverlayState extends State<DeveloperOverlay> {
                             ),
                             
                             const SizedBox(height: 32),
-                            const Divider(height: 1, alpha: 0.1),
+                            Divider(height: 1, color: isDark ? Colors.white10 : Colors.black12),
                             const SizedBox(height: 32),
 
                             // Social Links as Logos
