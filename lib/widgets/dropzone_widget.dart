@@ -18,10 +18,13 @@ class DropzoneWidget extends StatefulWidget {
   /// Callback invoked when an error occurs during file reading.
   final void Function(String error)? onError;
 
+  final Widget? child;
+
   const DropzoneWidget({
     super.key,
     required this.onFileDropped,
     this.onError,
+    this.child,
   });
 
   @override
@@ -74,7 +77,7 @@ class _DropzoneWidgetState extends State<DropzoneWidget> {
                   ? const Color(0xFF6C63FF).withValues(alpha: 0.08)
                   : Colors.transparent,
             ),
-            child: Column(
+            child: widget.child ?? Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 AnimatedScale(
