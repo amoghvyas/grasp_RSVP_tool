@@ -12,6 +12,7 @@ import '../models/reader_state.dart';
 import '../services/file_parser_service.dart';
 import '../services/focus_service.dart';
 import '../services/gemini_service.dart';
+import '../services/open_router_service.dart';
 import '../services/sanitizer_service.dart';
 import '../services/tts_service.dart';
 import '../services/url_import_service.dart';
@@ -44,6 +45,9 @@ class ReaderProvider extends ChangeNotifier {
 
   /// Bimodal TTS reading service.
   final TtsService _ttsService = TtsService();
+
+  /// OpenRouter service for Infinite mode.
+  final OpenRouterService _openRouterService = OpenRouterService();
 
   /// URL content fetcher.
   final UrlImportService _urlService = UrlImportService();
@@ -108,6 +112,18 @@ class ReaderProvider extends ChangeNotifier {
   /// Re-initializes Gemini with a new API key (e.g. entered manually).
   void updateApiKey(String apiKey) {
     _geminiService.initialize(apiKey);
+    _openRouterService.initialize(apiKey); // Try same key for OR if compatible
+    notifyListeners();
+  }
+
+  void updateOpenRouterKey(String apiKey) {
+    _openRouterService.initialize(apiKey);
+    notifyListeners();
+  }
+
+  void setAiProvider(AiProvider provider) {
+    _state = _state.copyWith(aiProvider: provider);
+    _savePref('ai_provider', provider.name);
     notifyListeners();
   }
 
@@ -195,10 +211,9 @@ class ReaderProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final summary = await _geminiService.generateSummary(
-        _state.rawText,
-        hinglish: hinglish,
-      );
+      final summary = _state.aiProvider == AiProvider.gemini
+          ? await _geminiService.generateSummary(_state.rawText, hinglish: hinglish)
+          : await _openRouterService.generateSummary(_state.rawText, hinglish: hinglish);
       _state = _state.copyWith(
         summary: summary,
         isSummaryLoading: false,
@@ -223,10 +238,9 @@ class ReaderProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final questions = await _geminiService.generateVivaQuestions(
-        _state.rawText,
-        hinglish: hinglish,
-      );
+      final questions = _state.aiProvider == AiProvider.gemini
+          ? await _geminiService.generateVivaQuestions(_state.rawText, hinglish: hinglish)
+          : await _openRouterService.generateVivaQuestions(_state.rawText, hinglish: hinglish);
       _state = _state.copyWith(
         vivaQuestions: questions,
         isVivaLoading: false,
@@ -286,7 +300,9 @@ class ReaderProvider extends ChangeNotifier {
       final start = (_state.currentIndex - 300).clamp(0, _state.totalWords);
       final contextText = _state.words.sublist(start, _state.currentIndex).join(' ');
       
-      final recall = await _geminiService.generateRecallQuestion(contextText);
+      final recall = _state.aiProvider == AiProvider.gemini
+          ? await _geminiService.generateRecallQuestion(contextText)
+          : await _openRouterService.generateRecallQuestion(contextText);
       
       _state = _state.copyWith(
         recallQuestion: recall.question,

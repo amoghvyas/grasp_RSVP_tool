@@ -1,5 +1,7 @@
 import '../services/focus_service.dart';
 
+enum AiProvider { gemini, openRouter }
+
 /// Ephemeral and Persistent data model for an RSVP reading session.
 ///
 /// This state manages the current text, reading position, and
@@ -88,6 +90,9 @@ class ReaderState {
   /// Time remaining in the current sprint (in seconds).
   final int sprintTimeRemaining;
 
+  /// Selected AI Provider.
+  final AiProvider aiProvider;
+
   const ReaderState({
     this.words = const [],
     this.currentIndex = 0,
@@ -114,6 +119,7 @@ class ReaderState {
     this.isTtsEnabled = false,
     this.isSprintActive = false,
     this.sprintTimeRemaining = 1500, // Default 25m
+    this.aiProvider = AiProvider.gemini,
   });
 
   /// Creates a copy of this state with the specified fields overridden.
@@ -170,6 +176,7 @@ class ReaderState {
       isTtsEnabled: isTtsEnabled ?? this.isTtsEnabled,
       isSprintActive: isSprintActive ?? this.isSprintActive,
       sprintTimeRemaining: sprintTimeRemaining ?? this.sprintTimeRemaining,
+      aiProvider: aiProvider ?? this.aiProvider,
     );
   }
 

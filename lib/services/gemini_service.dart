@@ -138,7 +138,7 @@ $text
   /// Generates a single tricky multiple-choice question based on the [text].
   ///
   /// Forces a specific format: Question | Option1 | Option2 | Option3 | Option4 | CorrectIndex (0-3)
-  Future<RecallQuestion> generateRecallQuestion(String text) async {
+  Future<RecallResult> generateRecallQuestion(String text) async {
     _ensureInitialized();
 
     final prompt = '''
@@ -160,19 +160,19 @@ $text
     return _parseRecallQuestion(response);
   }
 
-  RecallQuestion _parseRecallQuestion(String rawResponse) {
+  RecallResult _parseRecallQuestion(String rawResponse) {
     try {
       final parts = rawResponse.split('|');
       if (parts.length < 7) throw Exception('Invalid format');
       
-      return RecallQuestion(
+      return RecallResult(
         question: parts[1],
         options: [parts[2], parts[3], parts[4], parts[5]],
         correctIndex: int.parse(parts[6].replaceAll(RegExp(r'[^0-9]'), '')),
       );
     } catch (e) {
       // Fallback if parsing fails
-      return RecallQuestion(
+      return RecallResult(
         question: 'What is the main topic of the text just read?',
         options: ['General Concept', 'Specific Detail', 'Technical Term', 'Introduction'],
         correctIndex: 0,
@@ -303,12 +303,12 @@ $text
 }
 
 /// Simple DTO for Active Recall questions.
-class RecallQuestion {
+class RecallResult {
   final String question;
   final List<String> options;
   final int correctIndex;
 
-  const RecallQuestion({
+  const RecallResult({
     required this.question,
     required this.options,
     required this.correctIndex,

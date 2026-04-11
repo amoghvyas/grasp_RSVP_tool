@@ -62,7 +62,12 @@ class _StudyToolsPanelState extends State<StudyToolsPanel>
             curve: Curves.easeInOut,
             alignment: Alignment.topCenter,
             child: provider.isAiReady 
-                ? _buildTabContent(provider, state)
+                ? Column(
+                    children: [
+                      _buildEngineSwitcher(provider, state),
+                      _buildTabContent(provider, state),
+                    ],
+                  )
                 : _buildApiKeySetup(provider),
           ),
         ),
@@ -695,6 +700,121 @@ class _StudyToolsPanelState extends State<StudyToolsPanel>
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAiError(String message) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.red.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline, size: 16, color: Colors.redAccent),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: GoogleFonts.inter(fontSize: 12, color: Colors.redAccent),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEngineSwitcher(ReaderProvider provider, state) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.03),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        ),
+        child: Row(
+          children: [
+            _buildEngineOption(
+              label: 'Standard',
+              subtitle: 'Gemini 1.5',
+              icon: Icons.bolt,
+              isSelected: state.aiProvider == AiProvider.gemini,
+              onTap: () => provider.setAiProvider(AiProvider.gemini),
+            ),
+            _buildEngineOption(
+              label: 'Infinite',
+              subtitle: 'Zero Limits',
+              icon: Icons.all_inclusive,
+              isSelected: state.aiProvider == AiProvider.openRouter,
+              onTap: () => provider.setAiProvider(AiProvider.openRouter),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEngineOption({
+    required String label,
+    required String subtitle,
+    required IconData icon,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected 
+                ? const Color(0xFF6C63FF).withValues(alpha: 0.1) 
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: isSelected 
+                  ? const Color(0xFF6C63FF).withValues(alpha: 0.3) 
+                  : Colors.transparent,
+            ),
+          ),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    icon, 
+                    size: 14, 
+                    color: isSelected ? const Color(0xFF6C63FF) : Colors.white24
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    label,
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: isSelected ? Colors.white : Colors.white38,
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                subtitle,
+                style: GoogleFonts.inter(
+                  fontSize: 10,
+                  color: isSelected ? const Color(0xFF6C63FF).withValues(alpha: 0.7) : Colors.white10,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
