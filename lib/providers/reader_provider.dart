@@ -98,7 +98,7 @@ class ReaderProvider extends ChangeNotifier {
         final pageImage = await page.render(
           width: page.width * 2,
           height: page.height * 2,
-          format: PdfPageImageFormat.jpg,
+          format: PdfPageImageFormat.jpeg,
           quality: 100,
         );
         
