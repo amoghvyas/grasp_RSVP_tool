@@ -120,7 +120,7 @@ class _WelcomeGuidePanelState extends State<WelcomeGuidePanel> with SingleTicker
                       title: 'Strategic Mastery Loop',
                       items: [
                         '**Natural Acceleration**: Start at 300 WPM. Your brain will synchronize with the flow in seconds, allowing you to hit 700+ WPM with ease.',
-                        '**Bimodal Synergies**: Use the **Bimodal Reading (TTS)** toggle to hear words while you see them. This dual-input method increases comprehension by up to 30%.',
+                        '**Passive Listening**: Feeling fatigued? Use the **Listen to Material** button to hear the entire document read aloud at a natural conversational speed.',
                         '**The Exam Protocol**: PDF Upload → AI Summary → Rapid Focus Read → Viva Q&A. Complete this loop twice to own any complex topic.',
                         '**Contextual Pacing**: Our engine automatically pauses at commas and hard stops, giving your mind micro-breaks to digest logic-heavy sentences.',
                       ],

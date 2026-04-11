@@ -2,59 +2,42 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/reader_state.dart';
 
-/// Service to access high-limit free AI models via OpenRouter.
+/// Service to access high-limit free AI models via Pollinations.ai.
+/// Requires NO API KEY, making it completely free and limitless.
 class OpenRouterService {
-  String? _apiKey;
-  bool _isInitialized = false;
+  bool _isInitialized = true; // Always true since no key is needed
 
   bool get isInitialized => _isInitialized;
 
-  /// Default free models to rotate through
-  final List<String> _freeModels = [
-    'google/gemma-2-9b-it:free',
-    'meta-llama/llama-3.1-8b-instruct:free',
-  ];
-
   void initialize(String apiKey) {
-    if (apiKey.isEmpty) return;
-    _apiKey = apiKey;
-    _isInitialized = true;
+    // No-op: Pollinations doesn't require an API key
   }
 
   Future<String> _request(String prompt, {String? systemPrompt}) async {
-    if (!_isInitialized) throw Exception('OpenRouter not initialized');
+    try {
+      final response = await http.post(
+        Uri.parse('https://text.pollinations.ai/'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'messages': [
+            if (systemPrompt != null) {'role': 'system', 'content': systemPrompt},
+            {'role': 'user', 'content': prompt},
+          ],
+          'model': 'openai', // Defaulting to high quality
+          'jsonMode': false,
+        }),
+      );
 
-    for (var model in _freeModels) {
-      try {
-        final response = await http.post(
-          Uri.parse('https://openrouter.ai/api/v1/chat/completions'),
-          headers: {
-            'Authorization': 'Bearer $_apiKey',
-            'Content-Type': 'application/json',
-            'HTTP-Referer': 'https://grasptool.app',
-            'X-Title': 'Grasp RSVP Tool',
-            'OR-Logging': 'false', // Privacy: No logging of prompt/response
-          },
-          body: jsonEncode({
-            'model': model,
-            'messages': [
-              if (systemPrompt != null) {'role': 'system', 'content': systemPrompt},
-              {'role': 'user', 'content': prompt},
-            ],
-            'temperature': 0.7,
-          }),
-        );
-
-        if (response.statusCode == 200) {
-          final data = jsonDecode(response.body);
-          return data['choices'][0]['message']['content'];
-        }
-      } catch (e) {
-        // Try next model if one fails
-        continue;
+      if (response.statusCode == 200) {
+        // Pollinations text endpoint returns raw plain text response!
+        return response.body;
       }
+      throw Exception('Server returned ${response.statusCode}');
+    } catch (e) {
+      throw Exception('Exception: All Infinite Mode models are currently busy. Try Gemini or wait a minute. Details: $e');
     }
-    throw Exception('All Infinite Mode models are currently busy. Try Gemini or wait a minute.');
   }
 
   Future<String> generateSummary(String text, {bool hinglish = false}) async {

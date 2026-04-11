@@ -5,7 +5,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/reader_provider.dart';
-import '../widgets/audio_settings_panel.dart';
 
 /// Translucent glassmorphic overlay shown when the RSVP reader is paused.
 class SettingsOverlay extends StatelessWidget {
@@ -150,12 +149,6 @@ class SettingsOverlay extends StatelessWidget {
                                       onChanged: (v) => provider.setFontSize(v),
                                     ),
                                   ),
-
-                                  const SizedBox(height: 20),
-                                  const Divider(color: Colors.white10, height: 1),
-                                  const SizedBox(height: 20),
-
-                                  const AudioSettingsPanel(),
 
                                   const SizedBox(height: 20),
                                   const Divider(color: Colors.white10, height: 1),

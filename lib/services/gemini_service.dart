@@ -235,7 +235,7 @@ $text
       return 'API Key issue detected. Please check your settings.';
     }
 
-    return 'Oops! Something went wrong with the AI. Let\'s try that again in a moment.';
+    return 'Oops! Something went wrong with the AI: $technicalError';
   }
 
   /// Tries each model in the fallback list until one succeeds.

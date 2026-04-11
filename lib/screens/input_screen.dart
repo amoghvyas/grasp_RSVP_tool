@@ -728,49 +728,78 @@ class _InputScreenState extends State<InputScreen> {
   }
 
   Widget _buildStartButton(ReaderProvider provider) {
-    return _HoverScale(
-      child: Container(
-        height: 62,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18),
-          gradient: const LinearGradient(
-            colors: [Color(0xFF6C63FF), Color(0xFF8B7FFF), Color(0xFF00D9FF)],
-            stops: [0.0, 0.5, 1.0],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF6C63FF).withValues(alpha: 0.45),
-              blurRadius: 30,
-              offset: const Offset(0, 10),
-              spreadRadius: -6,
-            ),
-          ],
-        ),
-        child: ElevatedButton(
-          onPressed: () => provider.startReading(),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.transparent,
-            shadowColor: Colors.transparent,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-            padding: EdgeInsets.zero,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.play_arrow_rounded, size: 28),
-              const SizedBox(width: 10),
-              Text(
-                'Start Reading',
-                style: GoogleFonts.inter(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.2,
-                ),
+    return Column(
+      children: [
+        _HoverScale(
+          child: Container(
+            height: 62,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              gradient: const LinearGradient(
+                colors: [Color(0xFF6C63FF), Color(0xFF8B7FFF), Color(0xFF00D9FF)],
+                stops: [0.0, 0.5, 1.0],
               ),
-            ],
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF6C63FF).withValues(alpha: 0.45),
+                  blurRadius: 30,
+                  offset: const Offset(0, 10),
+                  spreadRadius: -6,
+                ),
+              ],
+            ),
+            child: ElevatedButton(
+              onPressed: () => provider.startReading(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                padding: EdgeInsets.zero,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.play_arrow_rounded, size: 28),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Start Reading',
+                    style: GoogleFonts.inter(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
-      ),
+        const SizedBox(height: 16),
+        _HoverScale(
+          child: OutlinedButton.icon(
+            onPressed: () => provider.toggleListening(),
+            icon: Icon(
+              provider.state.isListening ? Icons.stop_rounded : Icons.headphones_rounded,
+              size: 20,
+              color: const Color(0xFFFF6B9D),
+            ),
+            label: Text(
+              provider.state.isListening ? 'Stop Listening' : 'Listen to Material (Normal Speed)',
+              style: GoogleFonts.inter(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: Colors.white.withValues(alpha: 0.8),
+              ),
+            ),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              side: BorderSide(color: const Color(0xFFFF6B9D).withValues(alpha: 0.3)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              backgroundColor: const Color(0xFFFF6B9D).withValues(alpha: 0.05),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

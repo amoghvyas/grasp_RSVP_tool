@@ -223,7 +223,10 @@ class ReaderProvider extends ChangeNotifier {
         _state = _state.copyWith(isPlaying: false);
       } else {
         _state = _state.copyWith(currentIndex: nextIndex);
-        if (_state.isTtsEnabled) _ttsService.speakWord(_state.currentWord);
+        if (_state.isListening && _state.currentIndex == 0) {
+          // If listening is toggled on during RSVP flow, it operates independently,
+          // but we no longer trigger word-by-word TTS sync since speech speeds are different.
+        }
         _scheduleNextWord();
       }
       notifyListeners();
@@ -268,10 +271,17 @@ class ReaderProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void toggleTts(bool e) {
-    _ttsService.toggle(e);
-    _state = _state.copyWith(isTtsEnabled: e);
-    _savePref('rsvp_ttsEnabled', e ? 1 : 0);
+  void toggleListening() {
+    if (_state.rawText.isEmpty) return;
+
+    final newState = !_state.isListening;
+    if (newState) {
+      _ttsService.speakFullText(_state.rawText);
+    } else {
+      _ttsService.stop();
+    }
+    
+    _state = _state.copyWith(isListening: newState);
     notifyListeners();
   }
 
@@ -335,7 +345,6 @@ class ReaderProvider extends ChangeNotifier {
       wpm: wpm,
       fontSize: fontSize,
       focusSound: focusSound,
-      isTtsEnabled: ttsEnabled,
       aiProvider: aiProvider,
     );
     notifyListeners();

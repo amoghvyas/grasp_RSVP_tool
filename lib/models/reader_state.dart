@@ -42,7 +42,7 @@ class ReaderState {
   final int recallInterval;
   final FocusSound focusSound;
   final double focusVolume;
-  final bool isTtsEnabled;
+  final bool isListening;
   final bool isSprintActive;
   final int sprintTimeRemaining;
   final AiProvider aiProvider;
@@ -70,7 +70,7 @@ class ReaderState {
     this.recallInterval = 200,
     this.focusSound = FocusSound.none,
     this.focusVolume = 0.5,
-    this.isTtsEnabled = false,
+    this.isListening = false,
     this.isSprintActive = false,
     this.sprintTimeRemaining = 1500,
     this.aiProvider = AiProvider.gemini,
@@ -99,7 +99,7 @@ class ReaderState {
     int? recallInterval,
     FocusSound? focusSound,
     double? focusVolume,
-    bool? isTtsEnabled,
+    bool? isListening,
     bool? isSprintActive,
     int? sprintTimeRemaining,
     AiProvider? aiProvider,
@@ -131,7 +131,7 @@ class ReaderState {
       recallInterval: recallInterval ?? this.recallInterval,
       focusSound: focusSound ?? this.focusSound,
       focusVolume: focusVolume ?? this.focusVolume,
-      isTtsEnabled: isTtsEnabled ?? this.isTtsEnabled,
+      isListening: isListening ?? this.isListening,
       isSprintActive: isSprintActive ?? this.isSprintActive,
       sprintTimeRemaining: sprintTimeRemaining ?? this.sprintTimeRemaining,
       aiProvider: aiProvider ?? this.aiProvider,
