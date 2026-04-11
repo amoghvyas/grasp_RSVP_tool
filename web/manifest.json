@@ -1,11 +1,11 @@
 {
-    "name": "Grasp",
+    "name": "Grasp Scholarly",
     "short_name": "Grasp",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0A0A0F",
-    "theme_color": "#6C63FF",
-    "description": "Premium AI-powered RSVP speed reading tool for students.",
+    "background_color": "#1C1C1E",
+    "theme_color": "#0071E3",
+    "description": "Autonomous Vision AI & High-Speed Scholarly Research Suite.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false
 }
