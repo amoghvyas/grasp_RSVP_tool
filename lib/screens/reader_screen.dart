@@ -41,23 +41,22 @@ class ReaderScreen extends StatelessWidget {
                           children: [
                             // ── Focus Guides (ORP alignment) ────────────
                             Positioned(
-                              top: 0,
-                              bottom: 0,
+                              top: MediaQuery.of(context).size.height / 2 - (state.fontSize / 2 + 32),
+                              bottom: MediaQuery.of(context).size.height / 2 - (state.fontSize / 2 + 32),
                               child: Container(
-                                width: 1,
-                                height: double.infinity,
+                                width: 2, // Slightly bolder for precision
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Container(
-                                      width: 1,
-                                      height: 24,
-                                      color: const Color(0xFFFF3B30).withValues(alpha: 0.5),
+                                      width: 2,
+                                      height: 16,
+                                      color: const Color(0xFFFF3B30), // Solid Apple Red
                                     ),
                                     Container(
-                                      width: 1,
-                                      height: 24,
-                                      color: const Color(0xFFFF3B30).withValues(alpha: 0.5),
+                                      width: 2,
+                                      height: 16,
+                                      color: const Color(0xFFFF3B30), // Solid Apple Red
                                     ),
                                   ],
                                 ),
