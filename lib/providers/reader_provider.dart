@@ -314,9 +314,9 @@ class ReaderProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateApiKey(String key) {
-    _geminiService.initialize(key);
-    _openRouterService.initialize(key);
+  void initializeAiKeys(String geminiKey, String openRouterKey) {
+    if (geminiKey.isNotEmpty) _geminiService.initialize(geminiKey);
+    if (openRouterKey.isNotEmpty) _openRouterService.initialize(openRouterKey);
     notifyListeners();
   }
 

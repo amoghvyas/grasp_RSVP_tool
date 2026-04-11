@@ -2,42 +2,67 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/reader_state.dart';
 
-/// Service to access high-limit free AI models via Pollinations.ai.
-/// Requires NO API KEY, making it completely free and limitless.
+/// Service to access high-limit free AI models via OpenRouter.
 class OpenRouterService {
-  bool _isInitialized = true; // Always true since no key is needed
+  String? _apiKey;
+  bool _isInitialized = false;
 
   bool get isInitialized => _isInitialized;
 
+  /// Default free models to rotate through
+  final List<String> _freeModels = [
+    'google/gemma-2-9b-it:free',
+    'meta-llama/llama-3.1-8b-instruct:free',
+  ];
+
   void initialize(String apiKey) {
-    // No-op: Pollinations doesn't require an API key
+    if (apiKey.isEmpty) return;
+    _apiKey = apiKey;
+    _isInitialized = true;
   }
 
   Future<String> _request(String prompt, {String? systemPrompt}) async {
-    try {
-      final response = await http.post(
-        Uri.parse('https://text.pollinations.ai/'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'messages': [
-            if (systemPrompt != null) {'role': 'system', 'content': systemPrompt},
-            {'role': 'user', 'content': prompt},
-          ],
-          'model': 'openai', // Defaulting to high quality
-          'jsonMode': false,
-        }),
-      );
+    if (!_isInitialized) throw Exception('OpenRouter not initialized');
 
-      if (response.statusCode == 200) {
-        // Pollinations text endpoint returns raw plain text response!
-        return response.body;
+    List<String> errors = [];
+    for (var model in _freeModels) {
+      try {
+        final response = await http.post(
+          Uri.parse('https://openrouter.ai/api/v1/chat/completions'),
+          headers: {
+            'Authorization': 'Bearer $_apiKey',
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://grasptool.app',
+            'X-Title': 'Grasp RSVP Tool',
+            'OR-Logging': 'false', // Privacy: No logging of prompt/response
+          },
+          body: jsonEncode({
+            'model': model,
+            'messages': [
+              if (systemPrompt != null) {'role': 'system', 'content': systemPrompt},
+              {'role': 'user', 'content': prompt},
+            ],
+            'temperature': 0.7,
+          }),
+        );
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          if (data['choices'] != null && data['choices'].isNotEmpty) {
+            return data['choices'][0]['message']['content'];
+          } else {
+             errors.add('$model: Empty choices (Payload: ${response.body})');
+          }
+        } else {
+          errors.add('$model failed with status ${response.statusCode} (Payload: ${response.body})');
+        }
+      } catch (e) {
+        // Try next model if one fails
+        errors.add('$model exception: $e');
+        continue;
       }
-      throw Exception('Server returned ${response.statusCode}');
-    } catch (e) {
-      throw Exception('Exception: All Infinite Mode models are currently busy. Try Gemini or wait a minute. Details: $e');
     }
+    throw Exception('All Infinite Mode models are currently busy or failed. Details: \n${errors.join('\n')}');
   }
 
   Future<String> generateSummary(String text, {bool hinglish = false}) async {

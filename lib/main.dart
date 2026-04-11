@@ -12,16 +12,17 @@ import 'screens/reader_screen.dart';
 /// If no key is provided, falls back to the community key (free tier).
 const _geminiApiKey = String.fromEnvironment(
   'GEMINI_API_KEY',
-  defaultValue: 'AIzaSyA2KlwBX3mkFo30om9LUFYQhpqLoa_BNhEB',
+  defaultValue: '', // Using empty string to enforce valid fallback checks
+);
+
+/// OpenRouter API key injected at build time via:
+///   flutter run --dart-define=OPENROUTER_API_KEY=your_key_here
+const _openRouterApiKey = String.fromEnvironment(
+  'OPENROUTER_API_KEY',
+  defaultValue: '',
 );
 
 void main() {
-  // ── Syncfusion Community License ──────────────────────────────────
-  // Register your free Syncfusion community license key here.
-  // Get one at: https://www.syncfusion.com/products/communitylicense
-  // Uncomment the line below and replace with your key:
-  // SyncfusionLicense.registerLicense('YOUR-COMMUNITY-LICENSE-KEY');
-
   runApp(const RSVPReaderApp());
 }
 
@@ -33,10 +34,8 @@ class RSVPReaderApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) {
         final provider = ReaderProvider();
-        // Initialize Gemini AI if an API key was provided at build time
-        if (_geminiApiKey.isNotEmpty) {
-          provider.initializeAi(_geminiApiKey);
-        }
+        // Initialize AI services with their respective keys
+        provider.initializeAiKeys(_geminiApiKey, _openRouterApiKey);
         return provider;
       },
       child: MaterialApp(

@@ -64,7 +64,8 @@ jobs:
         run: |
           flutter build web --release \
             --base-href="/" \
-            --dart-define=GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"
+            --dart-define=GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
+            --dart-define=OPENROUTER_API_KEY="${{ secrets.OPENROUTER_API_KEY }}"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
