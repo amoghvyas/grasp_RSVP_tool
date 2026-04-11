@@ -92,7 +92,7 @@ flutter build web --release --base-href="/" --dart-define=GROQ_API_KEY=your_groq
 
 ## 🤝 Contributing to Scholarship
 
-We welcome researchers, developers, and educators to contribute to the Grasp ecosystem.
+I welcome researchers, developers, and educators to contribute to the Grasp ecosystem.
 
 1. Review the [CONTRIBUTING.md](CONTRIBUTING.md) for architectural standards.
 2. Adhere to our [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
@@ -105,6 +105,7 @@ We welcome researchers, developers, and educators to contribute to the Grasp eco
 - **License**: MIT — Designed to be free and open for the betterment of education.
 - **PDF Engine**: Developed using Syncfusion and PDFx.
 - **Visual AI**: Powered by **Groq LPU™** and **Meta Llama 3.2 Vision**.
+- **Assisted Development**: Antigravity by Google
 
 ---
 
