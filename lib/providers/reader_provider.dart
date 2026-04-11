@@ -96,9 +96,12 @@ class ReaderProvider extends ChangeNotifier {
       } else {
         try {
           summary = await _groqService.generateSummary(_state.rawText, hinglish: hinglish);
-        } catch (e) {
-          // Fallback to Gemini if Groq experiences network/CORS issues or limits
-          summary = await _geminiService.generateSummary(_state.rawText, hinglish: hinglish);
+        } catch (e1) {
+          try {
+            summary = await _geminiService.generateSummary(_state.rawText, hinglish: hinglish);
+          } catch (e2) {
+            throw Exception('Groq Failure: $e1\n\nGemini Fallback Failure: $e2');
+          }
         }
       }
       _state = _state.copyWith(summary: summary, isSummaryLoading: false);
@@ -122,8 +125,12 @@ class ReaderProvider extends ChangeNotifier {
       } else {
         try {
           questions = await _groqService.generateVivaQuestions(_state.rawText, hinglish: hinglish);
-        } catch (e) {
-          questions = await _geminiService.generateVivaQuestions(_state.rawText, hinglish: hinglish);
+        } catch (e1) {
+          try {
+            questions = await _geminiService.generateVivaQuestions(_state.rawText, hinglish: hinglish);
+          } catch (e2) {
+            throw Exception('Groq Failure: $e1\n\nGemini Fallback Failure: $e2');
+          }
         }
       }
       _state = _state.copyWith(vivaQuestions: questions, isVivaLoading: false);
@@ -171,8 +178,12 @@ class ReaderProvider extends ChangeNotifier {
       } else {
         try {
           recall = await _groqService.generateRecallQuestion(contextText);
-        } catch (e) {
-          recall = await _geminiService.generateRecallQuestion(contextText);
+        } catch (e1) {
+          try {
+            recall = await _geminiService.generateRecallQuestion(contextText);
+          } catch (e2) {
+            throw Exception('Groq Failure: $e1\n\nGemini Fallback Failure: $e2');
+          }
         }
       }
       
