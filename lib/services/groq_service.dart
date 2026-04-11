@@ -18,6 +18,8 @@ class GroqService {
 
   void initialize(String apiKey) {
     if (apiKey.isEmpty) return;
+    // Security: Credentials are kept in volatile memory only. 
+    // They are NEVER serialized to SharedPreferences or logs.
     _apiKey = apiKey;
     _isInitialized = true;
   }
