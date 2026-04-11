@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import '../providers/reader_provider.dart';
 import '../providers/theme_provider.dart';
 import '../widgets/apple_widgets.dart';
+import '../widgets/developer_overlay.dart';
 import '../widgets/dropzone_widget.dart';
 import '../widgets/study_tools_panel.dart';
 import '../widgets/welcome_guide_panel.dart';
@@ -308,25 +309,25 @@ class _InputScreenState extends State<InputScreen> {
     );
   }
 
+
   Widget _buildFooter(bool isDark) {
     return Column(
       children: [
-        Text(
-          'Built by Amogh 🤝',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: isDark ? Colors.white24 : Colors.black12,
-            letterSpacing: 0.5,
+        GestureDetector(
+          onTap: () => showDialog(
+            context: context,
+            builder: (context) => const DeveloperOverlay(),
+          ),
+          child: Text(
+            'Meet the Developer 🤝',
+            style: GoogleFonts.outfit(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white24 : Colors.black12,
+              letterSpacing: 0.5,
+            ),
           ),
         ),
-        const SizedBox(height: 24),
-        if (_isInstallable)
-          AppleButton(
-            label: 'Install App',
-            isPrimary: false,
-            onPressed: _triggerInstall,
-          ),
       ],
     );
   }
