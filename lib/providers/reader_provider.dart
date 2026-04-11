@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:csv/csv.dart';
 
+import 'dart:math';
 import 'package:pdfx/pdfx.dart';
 
 import '../models/reader_state.dart';
@@ -102,10 +103,10 @@ class ReaderProvider extends ChangeNotifier {
         
         final page = await document.getPage(i);
         final pageImage = await page.render(
-          width: page.width * 2,
-          height: page.height * 2,
+          width: page.width * 1.5, // Scholarly balance: Enough for OCR, small enough for mobile
+          height: page.height * 1.5,
           format: PdfPageImageFormat.jpeg,
-          quality: 100,
+          quality: 75, // Optimized for mobile network stability
         );
         
         if (pageImage != null) {

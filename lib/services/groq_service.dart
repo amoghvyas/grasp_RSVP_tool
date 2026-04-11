@@ -10,8 +10,8 @@ class GroqService {
 
   bool get isInitialized => _isInitialized;
 
-  /// Default model optimized for lightning-fast latency
-  final String _model = 'llama-3.1-8b-instant';
+  /// High-performance model for scholarly synthesis and reasoning
+  final String _model = 'llama-3.3-70b-versatile';
   
   /// Vision model for OCR and handwriting recognition
   final String _visionModel = 'llama-3.2-11b-vision-preview';
@@ -37,7 +37,8 @@ class GroqService {
           'model': _model,
           'messages': [
             if (systemPrompt != null) {'role': 'system', 'content': systemPrompt},
-            {'role': 'user', 'content': prompt},
+            // Scholarly Truncation: Ensure mobile stability by limiting payload to ~10k tokens
+            {'role': 'user', 'content': prompt.length > 40000 ? prompt.substring(0, 40000) : prompt},
           ],
           'temperature': 0.7,
         }),
