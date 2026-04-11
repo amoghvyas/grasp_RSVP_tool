@@ -10,7 +10,7 @@ class GroqService {
   bool get isInitialized => _isInitialized;
 
   /// Default model optimized for lightning-fast latency
-  final String _model = 'llama3-8b-8192';
+  final String _model = 'llama-3.1-8b-instant';
 
   void initialize(String apiKey) {
     if (apiKey.isEmpty) return;
