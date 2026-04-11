@@ -1,9 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../models/reader_state.dart';
 import '../providers/reader_provider.dart';
 
 /// A tabbed toolbox panel providing AI-powered study tools.
@@ -181,7 +178,7 @@ class _StudyToolsPanelState extends State<StudyToolsPanel>
     );
   }
 
-  Widget _buildTabContent(ReaderProvider provider, state) {
+  Widget _buildTabContent(ReaderProvider provider, ReaderState state) {
     final tabIndex = _tabController.index;
 
     if (tabIndex == 0) {
@@ -195,7 +192,7 @@ class _StudyToolsPanelState extends State<StudyToolsPanel>
   //  SUMMARY TAB
   // ════════════════════════════════════════════════════════════════════
 
-  Widget _buildSummaryTab(ReaderProvider provider, state) {
+  Widget _buildSummaryTab(ReaderProvider provider, ReaderState state) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
       child: Column(
@@ -230,7 +227,7 @@ class _StudyToolsPanelState extends State<StudyToolsPanel>
   //  VIVA TAB
   // ════════════════════════════════════════════════════════════════════
 
-  Widget _buildVivaTab(ReaderProvider provider, state) {
+  Widget _buildVivaTab(ReaderProvider provider, ReaderState state) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
       child: Column(
@@ -700,61 +697,6 @@ class _StudyToolsPanelState extends State<StudyToolsPanel>
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildAiError(String message) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.red.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.error_outline, size: 16, color: Colors.redAccent),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              message,
-              style: GoogleFonts.inter(fontSize: 12, color: Colors.redAccent),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEngineSwitcher(ReaderProvider provider, state) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Container(
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.03),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-        ),
-        child: Row(
-          children: [
-            _buildEngineOption(
-              label: 'Standard',
-              subtitle: 'Gemini 1.5',
-              icon: Icons.bolt,
-              isSelected: state.aiProvider == AiProvider.gemini,
-              onTap: () => provider.setAiProvider(AiProvider.gemini),
-            ),
-            _buildEngineOption(
-              label: 'Infinite',
-              subtitle: 'Zero Limits',
-              icon: Icons.all_inclusive,
-              isSelected: state.aiProvider == AiProvider.openRouter,
-              onTap: () => provider.setAiProvider(AiProvider.openRouter),
-            ),
-          ],
-        ),
       ),
     );
   }

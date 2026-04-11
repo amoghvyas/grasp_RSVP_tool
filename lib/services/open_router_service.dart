@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../models/reader_state.dart';
 
 /// Service to access high-limit free AI models via OpenRouter.
 class OpenRouterService {
@@ -70,7 +71,7 @@ class OpenRouterService {
     return _request('Text: $text', systemPrompt: systemPrompt);
   }
 
-  Future<RecallResult> generateRecallQuestion(String context) async {
+  Future<RecallQuestion> generateRecallQuestion(String context) async {
     final response = await _request(
       'Text context: $context',
       systemPrompt: 'You are a mastery teacher. Create a tricky MCQ from the text. Output ONLY a valid JSON object: {"question": "...", "options": ["A", "B", "C", "D"], "correctIndex": 0}'
@@ -85,25 +86,18 @@ class OpenRouterService {
       final jsonStr = response.substring(startIndex, endIndex);
       final data = jsonDecode(jsonStr);
       
-      return RecallResult(
+      return RecallQuestion(
         question: data['question'],
         options: List<String>.from(data['options']),
         correctIndex: data['correctIndex'],
       );
     } catch (e) {
       // Robust fallback
-      return RecallResult(
+      return RecallQuestion(
         question: 'What is the most accurate summary of the text you just read?',
         options: ['The theoretical foundation', 'The practical application', 'The historical context', 'The future implications'],
         correctIndex: 0,
       );
     }
   }
-}
-
-class RecallResult {
-  final String question;
-  final List<String> options;
-  final int correctIndex;
-  RecallResult({required this.question, required this.options, required this.correctIndex});
 }
