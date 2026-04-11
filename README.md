@@ -31,6 +31,7 @@ Grasp Scholarly is a high-performance academic environment built to eliminate th
 | ⚡ **Groq LPU™** | Experience instantaneous AI synthetics. Summarize and quiz your data at the speed of thought with ultra-low latency inference. |
 | 📖 **RSVP Precision** | Dynamic **Optimal Recognition Point (ORP)** alignment with adaptive scholarly red-lines (`#FF3B30`) for maximum retention. |
 | 🧘 **Focus Suite** | Integrated Pomodoro, high-precision Stopwatch, and Custom Timers to maintain your flow state within the research canvas. |
+| 🛡️ **Security Hardened** | Strict **Content Security Policy (CSP)**, Zero Telementry, and memory-only credential obfuscation for maximum research privacy. |
 | 🇬🇧🇮🇳 **Culture-Aware** | Generate summaries and Viva questions in formal English or a natural **Hinglish** hybrid for deeper context retention. |
 
 ---
@@ -52,6 +53,12 @@ Grasp Scholarly is a high-performance academic environment built to eliminate th
 - **Conceptual Summarization**: structured, exam-optimized summaries with key heuristics.
 - **Viva Voce Simulator**: Generate conceptual questions and model answers to test your depth of understanding.
 - **Interactive Retrieval-Augmented Quiz**: High-difficulty MCQs generated directly from your content to verify mastery.
+
+### 4. Defensive-by-Design Security
+- **Strict CSP Implementation**: Prevents XSS and unauthorized 3rd-party domain injections at the browser level.
+- **Zero-Telemetry Protocol**: All console logging and telemetry are globally suppressed in production mode.
+- **Credential Obfuscation**: API keys are Base64-obfuscated in memory to prevent string-searching in compiled JS bundles.
+- **Privacy First**: No local storage of sensitive AI prompts or responses; volatile memory only.
 
 ---
 
