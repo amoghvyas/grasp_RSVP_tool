@@ -70,7 +70,7 @@ class _DeveloperOverlayState extends State<DeveloperOverlay> {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
-                            border: Border.all(color: isDark ? Colors.white10 : Colors.black10, width: 2),
+                            border: Border.all(color: isDark ? Colors.white10 : Colors.black12, width: 2),
                           ),
                           child: ClipOval(
                             child: Image.asset(
