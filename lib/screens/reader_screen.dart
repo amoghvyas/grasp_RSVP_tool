@@ -36,26 +36,56 @@ class ReaderScreen extends StatelessWidget {
                     children: [
                       _buildTopBar(context, provider, state, isDark),
                       Expanded(
-                        child: Center(
-                          child: state.hasContent
-                              ? AnimatedSwitcher(
-                                  duration: const Duration(milliseconds: 75),
-                                  transitionBuilder: (child, animation) => FadeTransition(opacity: animation, child: child),
-                                  child: WordDisplay(
-                                    key: ValueKey(state.currentIndex),
-                                    word: state.currentWord,
-                                    fontSize: state.fontSize,
-                                  ),
-                                )
-                              : Text(
-                                  'NO CONTENT LOADED',
-                                  style: GoogleFonts.outfit(
-                                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1),
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 2,
-                                  ),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            // ── Focus Guides (ORP alignment) ────────────
+                            Positioned(
+                              top: 0,
+                              bottom: 0,
+                              child: Container(
+                                width: 1,
+                                height: double.infinity,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Container(
+                                      width: 1,
+                                      height: 24,
+                                      color: const Color(0xFFFF3B30).withValues(alpha: 0.5),
+                                    ),
+                                    Container(
+                                      width: 1,
+                                      height: 24,
+                                      color: const Color(0xFFFF3B30).withValues(alpha: 0.5),
+                                    ),
+                                  ],
                                 ),
+                              ),
+                            ),
+
+                            Center(
+                              child: state.hasContent
+                                  ? AnimatedSwitcher(
+                                      duration: const Duration(milliseconds: 75),
+                                      transitionBuilder: (child, animation) => FadeTransition(opacity: animation, child: child),
+                                      child: WordDisplay(
+                                        key: ValueKey(state.currentIndex),
+                                        word: state.currentWord,
+                                        fontSize: state.fontSize,
+                                      ),
+                                    )
+                                  : Text(
+                                      'NO CONTENT LOADED',
+                                      style: GoogleFonts.outfit(
+                                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 2,
+                                      ),
+                                    ),
+                            ),
+                          ],
                         ),
                       ),
                       _buildProgressBar(state, isDark),
