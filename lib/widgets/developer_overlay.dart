@@ -27,8 +27,9 @@ class _DeveloperOverlayState extends State<DeveloperOverlay> {
       await MessageService.sendMessage(_messageController.text);
       setState(() => _status = 'Message sent! 🚀');
       _messageController.clear();
+      // Auto-dismiss after success? No, let user read success message.
     } catch (e) {
-      setState(() => _status = 'Error sending message. Please check config.');
+      setState(() => _status = 'Error sending message. Please check EmailJS.');
     } finally {
       setState(() => _isSending = false);
     }
@@ -62,7 +63,7 @@ class _DeveloperOverlayState extends State<DeveloperOverlay> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Profile Photo with Fallback
+                        // Profile Section
                         Container(
                           width: 100,
                           height: 100,
@@ -92,26 +93,16 @@ class _DeveloperOverlayState extends State<DeveloperOverlay> {
                           'B.Tech IT • Academic Excellence',
                           style: TextStyle(color: isDark ? Colors.white38 : Colors.black38, fontSize: 13),
                         ),
-                        const SizedBox(height: 24),
                         
-                        // Social Links
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            _socialBtn('GitHub', 'https://github.com/amoghvyas', isDark),
-                            const SizedBox(width: 12),
-                            _socialBtn('LinkedIn', 'https://linkedin.com/in/amoghvyas', isDark),
-                          ],
-                        ),
                         const SizedBox(height: 32),
                         const Divider(height: 1),
                         const SizedBox(height: 32),
-                        
-                        // Suggest a Feature
+
+                        // Suggest a Feature (Now right below the profile)
                         Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            'TALK TO DEVELOPER',
+                            'SUGGEST A FEATURE',
                             style: GoogleFonts.outfit(
                               fontSize: 10, 
                               fontWeight: FontWeight.w800, 
@@ -120,17 +111,13 @@ class _DeveloperOverlayState extends State<DeveloperOverlay> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Drop a hi, suggest a feature, or just say something nice — I read every message!',
-                          style: TextStyle(fontSize: 12, color: isDark ? Colors.white38 : Colors.black38),
-                        ),
                         const SizedBox(height: 16),
                         TextField(
                           controller: _messageController,
                           maxLines: 4,
+                          style: const TextStyle(fontSize: 14),
                           decoration: InputDecoration(
-                            hintText: 'Write your message here...',
+                            hintText: 'Drop a hi or suggest a new feature...',
                             filled: true,
                             fillColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.02),
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
@@ -146,6 +133,20 @@ class _DeveloperOverlayState extends State<DeveloperOverlay> {
                           isLoading: _isSending,
                           onPressed: _handleSend,
                           width: double.infinity,
+                        ),
+                        
+                        const SizedBox(height: 32),
+                        const Divider(height: 1),
+                        const SizedBox(height: 24),
+
+                        // Social Links
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            _socialBtn('GitHub', 'https://github.com/amoghvyas', isDark),
+                            const SizedBox(width: 12),
+                            _socialBtn('LinkedIn', 'https://linkedin.com/in/amoghvyas', isDark),
+                          ],
                         ),
                       ],
                     ),
