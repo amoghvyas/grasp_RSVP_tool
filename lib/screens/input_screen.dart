@@ -318,7 +318,10 @@ class _InputScreenState extends State<InputScreen> {
                   label: 'Browse Files',
                   isPrimary: false,
                   onPressed: () async {
-                    final result = await FilePicker.platform.pickFiles();
+                    final result = await FilePicker.platform.pickFiles(
+                      type: FileType.custom,
+                      allowedExtensions: ['pdf', 'docx', 'txt', 'jpg', 'jpeg', 'png'],
+                    );
                     if (result != null) provider.loadFile(result.files.first.bytes, result.files.first.name);
                   },
                 ),

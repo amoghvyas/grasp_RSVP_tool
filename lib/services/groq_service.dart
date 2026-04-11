@@ -11,6 +11,9 @@ class GroqService {
 
   /// Default model optimized for lightning-fast latency
   final String _model = 'llama-3.1-8b-instant';
+  
+  /// Vision model for OCR and handwriting recognition
+  final String _visionModel = 'llama-3.2-11b-vision-preview';
 
   void initialize(String apiKey) {
     if (apiKey.isEmpty) return;
@@ -118,6 +121,46 @@ class GroqService {
       )).toList();
     } catch (e) {
       throw Exception('Failed to parse Quiz JSON. Please try again or adjust length. Error: $e');
+    }
+  }
+
+  /// Performs OCR on an image using Groq Vision
+  Future<String> performOcr(Uint8List imageBytes, String format) async {
+    if (!_isInitialized) throw Exception('Groq API not initialized');
+
+    final base64Image = base64Encode(imageBytes);
+    final dataUrl = 'data:image/$format;base64,$base64Image';
+
+    try {
+      final response = await http.post(
+        Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
+        headers: {
+          'Authorization': 'Bearer $_apiKey',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'model': _visionModel,
+          'messages': [
+            {
+              'role': 'user',
+              'content': [
+                {'type': 'text', 'text': 'Extract all text from this image. If it is a handwritten note, transcribe it accurately. Output ONLY the transcribed text without any preamble or conversational filler.'},
+                {'type': 'image_url', 'image_url': {'url': dataUrl}}
+              ],
+            },
+          ],
+          'temperature': 0.1,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['choices'][0]['message']['content'];
+      } else {
+        throw Exception('Groq Vision failed: ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('OCR error: $e');
     }
   }
 }

@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:csv/csv.dart';
 
+import 'package:pdfx/pdfx.dart';
+
 import '../models/reader_state.dart';
 import '../services/file_parser_service.dart';
 import '../services/focus_service.dart';
@@ -52,12 +54,85 @@ class ReaderProvider extends ChangeNotifier {
   }
 
   Future<void> loadFile(dynamic bytes, String fileName) async {
+    final extension = fileName.split('.').last.toLowerCase();
+    
+    if (['jpg', 'jpeg', 'png'].contains(extension)) {
+      await loadFromImage(bytes, fileName);
+    } else {
+      try {
+        final content = FileParserService.parseFile(bytes, fileName);
+        
+        // Scholarly Detection: If text is empty or trivially short, it's likely a scan
+        if (extension == 'pdf' && content.trim().length < 50) {
+          await _handleScannedPdf(bytes, fileName);
+        } else {
+          await loadFromText(content, fileName: fileName);
+        }
+      } catch (e) {
+        rethrow;
+      }
+    }
+  }
+
+  Future<void> _handleScannedPdf(dynamic bytes, String fileName) async {
+    _state = _state.copyWith(
+      isSummaryLoading: true, 
+      fileName: 'Processing Scanned PDF...',
+      aiError: null,
+    );
+    notifyListeners();
+
     try {
-      // FileParserService.parseFile is static
-      final content = FileParserService.parseFile(bytes, fileName);
-      await loadFromText(content, fileName: fileName);
+      final document = await PdfDocument.openData(bytes);
+      StringBuffer fullText = StringBuffer();
+      
+      // Process first 5 pages to ensure scholarship without hitting timeouts
+      // In a real production environment, this could be a parallel loop
+      final pageLimit = document.pagesCount > 5 ? 5 : document.pagesCount;
+      
+      for (int i = 1; i <= pageLimit; i++) {
+        _state = _state.copyWith(fileName: 'Scholarly OCR: Page $i of $pageLimit...');
+        notifyListeners();
+        
+        final page = await document.getPage(i);
+        final pageImage = await page.render(
+          width: page.width * 2,
+          height: page.height * 2,
+          format: PdfPageImageFormat.jpg,
+          quality: 100,
+        );
+        
+        if (pageImage != null) {
+          final transcribed = await _groqService.performOcr(pageImage.bytes, 'jpeg');
+          fullText.writeln(transcribed);
+        }
+        await page.close();
+      }
+      
+      await loadFromText(fullText.toString(), fileName: fileName);
+      await document.close();
     } catch (e) {
+      _state = _state.copyWith(aiError: 'Scholarly OCR failed: $e');
       rethrow;
+    } finally {
+      _state = _state.copyWith(isSummaryLoading: false);
+      notifyListeners();
+    }
+  }
+
+  Future<void> loadFromImage(dynamic bytes, String fileName) async {
+    _state = _state.copyWith(isSummaryLoading: true, fileName: 'Transcribing Handwritten Note...');
+    notifyListeners();
+    try {
+      final extension = fileName.split('.').last.toLowerCase();
+      final text = await _groqService.performOcr(bytes, extension);
+      await loadFromText(text, fileName: fileName);
+    } catch (e) {
+      _state = _state.copyWith(aiError: 'OCR failed: $e');
+      rethrow;
+    } finally {
+      _state = _state.copyWith(isSummaryLoading: false);
+      notifyListeners();
     }
   }
 
