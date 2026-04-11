@@ -98,7 +98,10 @@ class ReaderProvider extends ChangeNotifier {
       final pageLimit = document.pagesCount > 5 ? 5 : document.pagesCount;
       
       for (int i = 1; i <= pageLimit; i++) {
-        _state = _state.copyWith(fileName: 'Scholarly OCR: Page $i of $pageLimit...');
+        final remaining = (pageLimit - i + 1) * 4; // High-precision scholarly estimate
+        _state = _state.copyWith(
+          fileName: 'Scholarly OCR: Page $i of $pageLimit (Est: ${remaining}s remaining)...',
+        );
         notifyListeners();
         
         final page = await document.getPage(i);

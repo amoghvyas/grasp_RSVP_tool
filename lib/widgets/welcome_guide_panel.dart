@@ -52,9 +52,9 @@ class WelcomeGuidePanel extends StatelessWidget {
                 false,
               ),
               const SizedBox(width: 12),
-              _guideCard(
+      _guideCard(
                 'Import',
-                'Paste text, upload a PDF, or link an article URL.',
+                'Ingest any scholarly asset: high-fidelity PDF scans, digital manuscripts (DOCX), and raw visual research (PNG/JPG).',
                 Icons.add_rounded,
                 isDark,
                 false,
