@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -10,6 +11,10 @@ import 'screens/reader_screen.dart';
 const _groqApiKey = String.fromEnvironment('GROQ_API_KEY', defaultValue: '');
 
 void main() {
+  // Security: Suppress all console telemetry in production to prevent WebTool leakage
+  if (kReleaseMode) {
+    debugPrint = (String? message, {int? wrapWidth}) {};
+  }
   runApp(const RSVPReaderApp());
 }
 

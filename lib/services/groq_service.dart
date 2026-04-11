@@ -18,10 +18,16 @@ class GroqService {
 
   void initialize(String apiKey) {
     if (apiKey.isEmpty) return;
-    // Security: Credentials are kept in volatile memory only. 
-    // They are NEVER serialized to SharedPreferences or logs.
-    _apiKey = apiKey;
+    // Security: Obfuscate the key in memory to prevent simple heap inspection
+    // and string-searching in WebTools.
+    final encoded = base64Encode(utf8.encode(apiKey));
+    _apiKey = encoded;
     _isInitialized = true;
+  }
+
+  String _revealKey() {
+    if (_apiKey == null) return '';
+    return utf8.decode(base64Decode(_apiKey!));
   }
 
   Future<String> _request(String prompt, {String? systemPrompt}) async {
@@ -31,7 +37,7 @@ class GroqService {
       final response = await http.post(
         Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
         headers: {
-          'Authorization': 'Bearer $_apiKey',
+          'Authorization': 'Bearer ${_revealKey()}',
           'Content-Type': 'application/json; charset=UTF-8',
           'Accept': 'application/json',
         },
@@ -140,7 +146,7 @@ class GroqService {
       final response = await http.post(
         Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
         headers: {
-          'Authorization': 'Bearer $_apiKey',
+          'Authorization': 'Bearer ${_revealKey()}',
           'Content-Type': 'application/json; charset=UTF-8',
           'Accept': 'application/json',
         },
