@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/reader_provider.dart';
-import '../widgets/animated_background.dart';
+import '../providers/theme_provider.dart';
 import '../widgets/settings_overlay.dart';
 import '../widgets/word_display.dart';
 import '../widgets/active_recall_overlay.dart';
@@ -200,6 +200,8 @@ class ReaderScreen extends StatelessWidget {
             // WPM + Sprint launcher
             Row(
               children: [
+                _buildThemeToggle(),
+                const SizedBox(width: 12),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                   decoration: BoxDecoration(
@@ -228,55 +230,69 @@ class ReaderScreen extends StatelessWidget {
   }
 
   Widget _buildSprintLauncher(ReaderProvider provider) {
-    return PopupMenuButton<int>(
-      onSelected: (mins) => provider.startSprint(mins),
-      offset: const Offset(0, 44),
-      color: const Color(0xFF1A1A2E),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
-      ),
-      itemBuilder: (context) => [
-        _menuItem(15, Icons.bolt_rounded, '15 Min Sprint', 'Quick session'),
-        _menuItem(25, Icons.local_fire_department_rounded, '25 Min Sprint', 'Pomodoro ready'),
-        _menuItem(
-            50, Icons.psychology_rounded, '50 Min Deep Work', 'Full concentration block'),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _sprintChip(provider, 15, Icons.bolt_rounded, '15m'),
+        const SizedBox(width: 8),
+        _sprintChip(provider, 25, Icons.local_fire_department_rounded, '25m'),
+        const SizedBox(width: 8),
+        _sprintChip(provider, 50, Icons.psychology_rounded, '50m'),
       ],
+    );
+  }
+
+  Widget _sprintChip(ReaderProvider provider, int mins, IconData icon, String label) {
+    return GestureDetector(
+      onTap: () => provider.startSprint(mins),
       child: Container(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.05),
-          shape: BoxShape.circle,
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
         ),
-        child: const Icon(Icons.timer_outlined, size: 18, color: Colors.white38),
+        child: Row(
+          children: [
+            Icon(icon, size: 12, color: const Color(0xFF6C63FF)),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: Colors.white.withValues(alpha: 0.5),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  PopupMenuItem<int> _menuItem(int value, IconData icon, String title, String subtitle) {
-    return PopupMenuItem<int>(
-      value: value,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: const Color(0xFF6C63FF)),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(title,
-                  style: const TextStyle(
-                      color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
-              Text(subtitle,
-                  style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 11)),
-            ],
+  Widget _buildThemeToggle() {
+    return Consumer<ThemeProvider>(
+      builder: (context, theme, _) {
+        return GestureDetector(
+          onTap: () => theme.toggle(),
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.05),
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+            ),
+            child: Icon(
+              theme.isDarkMode ? Icons.nightlight_round : Icons.wb_sunny_rounded,
+              size: 14,
+              color: theme.isDarkMode ? const Color(0xFF6C63FF) : Colors.amber,
+            ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
+
 
   Widget _buildProgressBar(state) {
     return Container(

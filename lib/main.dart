@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import 'providers/reader_provider.dart';
+import 'providers/theme_provider.dart';
 import 'screens/input_screen.dart';
 import 'screens/reader_screen.dart';
 
@@ -22,18 +23,36 @@ class RSVPReaderApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) {
-        final provider = ReaderProvider();
-        // Initialize AI services with Groq Key
-        provider.initializeGroq(_groqApiKey);
-        return provider;
-      },
-      child: MaterialApp(
-        title: 'Grasp — RSVP Speed Reader',
-        debugShowCheckedModeBanner: false,
-        theme: _buildTheme(),
-        home: const _AppShell(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) {
+            final provider = ReaderProvider();
+            provider.initializeGroq(_groqApiKey);
+            return provider;
+          },
+        ),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+      ],
+      child: Consumer<ThemeProvider>(
+        builder: (context, theme, _) {
+          return ColorFiltered(
+            colorFilter: theme.isDarkMode 
+                ? const ColorFilter.mode(Colors.transparent, BlendMode.multiply)
+                : const ColorFilter.matrix([
+                    -1,  0,  0, 0, 255,
+                     0, -1,  0, 0, 255,
+                     0,  0, -1, 0, 255,
+                     0,  0,  0, 1, 0,
+                  ]),
+            child: MaterialApp(
+              title: 'Grasp — RSVP Speed Reader',
+              debugShowCheckedModeBanner: false,
+              theme: _buildTheme(),
+              home: const _AppShell(),
+            ),
+          );
+        },
       ),
     );
   }

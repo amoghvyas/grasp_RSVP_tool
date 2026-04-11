@@ -28,10 +28,13 @@ class _StudyToolsPanelState extends State<StudyToolsPanel>
   bool _summaryHinglish = false;
   bool _vivaHinglish = false;
 
+  double _quizCount = 5;
+  String _quizDifficulty = 'Moderate';
+
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(() => setState(() {}));
   }
 
@@ -190,7 +193,17 @@ class _StudyToolsPanelState extends State<StudyToolsPanel>
               children: [
                 Icon(Icons.quiz_rounded, size: 15),
                 SizedBox(width: 6),
-                Text('Viva & Q&A'),
+                Flexible(child: Text('Viva & Q&A', overflow: TextOverflow.ellipsis)),
+              ],
+            ),
+          ),
+          Tab(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.gamepad_rounded, size: 15),
+                SizedBox(width: 6),
+                Flexible(child: Text('Interactive Quiz', overflow: TextOverflow.ellipsis)),
               ],
             ),
           ),
@@ -204,9 +217,9 @@ class _StudyToolsPanelState extends State<StudyToolsPanel>
   // ════════════════════════════════════════════════════════════════════
 
   Widget _buildTabContent(ReaderProvider provider, ReaderState state) {
-    return _tabController.index == 0
-        ? _buildSummaryTab(provider, state)
-        : _buildVivaTab(provider, state);
+    if (_tabController.index == 0) return _buildSummaryTab(provider, state);
+    if (_tabController.index == 1) return _buildVivaTab(provider, state);
+    return _buildQuizTab(provider, state);
   }
 
   // ════════════════════════════════════════════════════════════════════
@@ -260,6 +273,145 @@ class _StudyToolsPanelState extends State<StudyToolsPanel>
             _buildContentCard(state.vivaQuestions!, 'Q&A', provider, state),
         ],
       ),
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════════
+  //  INTERACTIVE QUIZ TAB
+  // ════════════════════════════════════════════════════════════════════
+
+  Widget _buildQuizTab(ReaderProvider provider, ReaderState state) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Questions: ${_quizCount.toInt()}', style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 13)),
+                    Slider(
+                      value: _quizCount,
+                      min: 3,
+                      max: 20,
+                      divisions: 17,
+                      activeColor: const Color(0xFF00D9FF),
+                      onChanged: (v) => setState(() => _quizCount = v),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              DropdownButton<String>(
+                value: _quizDifficulty,
+                dropdownColor: const Color(0xFF1A1A2E),
+                style: GoogleFonts.inter(color: Colors.white, fontSize: 13),
+                underline: const SizedBox(),
+                items: ['Easy', 'Moderate', 'Hard'].map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                onChanged: (v) => setState(() => _quizDifficulty = v!),
+              ),
+              const SizedBox(width: 10),
+              if (!state.isQuizLoading)
+                ElevatedButton.icon(
+                  onPressed: provider.isAiReady ? () => provider.generateInteractiveQuiz(_quizCount.toInt(), _quizDifficulty) : null,
+                  icon: const Icon(Icons.auto_awesome, size: 15),
+                  label: const Text('Generate', style: TextStyle(fontSize: 13)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF00D9FF).withValues(alpha: 0.2),
+                    foregroundColor: const Color(0xFF00D9FF),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    elevation: 0,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (state.aiError != null && !state.isSummaryLoading && !state.isVivaLoading) _buildAiError(state.aiError!),
+          if (state.isQuizLoading) _buildLoadingIndicator('Generating Quiz...', provider, state),
+          if (state.quizzes != null && !state.isQuizLoading)
+            _buildQuizContentList(state.quizzes!, provider, state),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuizContentList(List<InteractiveQuiz> quizzes, ReaderProvider provider, ReaderState state) {
+    return Column(
+      children: quizzes.asMap().entries.map((entry) {
+        int qIdx = entry.key;
+        InteractiveQuiz quiz = entry.value;
+        bool hasAnswered = quiz.selectedIndex != null;
+        return Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.03),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Q${qIdx + 1}. ${quiz.question}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+              const SizedBox(height: 12),
+              ...quiz.options.asMap().entries.map((optEntry) {
+                int optIdx = optEntry.key;
+                String optText = optEntry.value;
+                bool isSelected = quiz.selectedIndex == optIdx;
+                bool isCorrect = quiz.correctIndex == optIdx;
+                
+                Color borderColor = Colors.white.withValues(alpha: 0.1);
+                Color bgColor = Colors.transparent;
+                IconData? trailIcon;
+                
+                if (hasAnswered) {
+                  if (isCorrect) {
+                     borderColor = Colors.greenAccent; bgColor = Colors.greenAccent.withValues(alpha: 0.1); trailIcon = Icons.check_circle_rounded;
+                  } else if (isSelected) {
+                     borderColor = Colors.redAccent; bgColor = Colors.redAccent.withValues(alpha: 0.1); trailIcon = Icons.cancel_rounded;
+                  }
+                } else if (isSelected) {
+                   borderColor = const Color(0xFF00D9FF); bgColor = const Color(0xFF00D9FF).withValues(alpha: 0.1);
+                }
+
+                return GestureDetector(
+                  onTap: () {
+                    if (!hasAnswered) provider.answerInteractiveQuiz(qIdx, optIdx);
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(10), border: Border.all(color: borderColor)),
+                    child: Row(
+                      children: [
+                        Expanded(child: Text(optText, style: const TextStyle(color: Colors.white, fontSize: 13))),
+                        if (trailIcon != null) Icon(trailIcon, size: 16, color: borderColor),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+              if (hasAnswered) ...[
+                 const SizedBox(height: 10),
+                 Container(
+                   padding: const EdgeInsets.all(12),
+                   decoration: BoxDecoration(color: const Color(0xFF6C63FF).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                   child: Text('💡 ${quiz.explanation}', style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 13, height: 1.4)),
+                 )
+              ]
+            ],
+          ),
+        );
+      }).toList(),
     );
   }
 

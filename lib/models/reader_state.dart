@@ -13,6 +13,32 @@ class RecallQuestion {
   });
 }
 
+class InteractiveQuiz {
+  final String question;
+  final List<String> options;
+  final int correctIndex;
+  final String explanation;
+  final int? selectedIndex;
+
+  InteractiveQuiz({
+    required this.question,
+    required this.options,
+    required this.correctIndex,
+    required this.explanation,
+    this.selectedIndex,
+  });
+
+  InteractiveQuiz copyWith({int? selectedIndex}) {
+    return InteractiveQuiz(
+      question: question,
+      options: options,
+      correctIndex: correctIndex,
+      explanation: explanation,
+      selectedIndex: selectedIndex ?? this.selectedIndex,
+    );
+  }
+}
+
 /// Ephemeral and Persistent data model for an RSVP reading session.
 class ReaderState {
   final List<String> words;
@@ -26,8 +52,10 @@ class ReaderState {
   
   final String? summary;
   final String? vivaQuestions;
+  final List<InteractiveQuiz>? quizzes;
   final bool isSummaryLoading;
   final bool isVivaLoading;
+  final bool isQuizLoading;
   final String? aiError;
 
   final bool isRecallActive;
@@ -55,8 +83,10 @@ class ReaderState {
     this.rawText = '',
     this.summary,
     this.vivaQuestions,
+    this.quizzes,
     this.isSummaryLoading = false,
     this.isVivaLoading = false,
+    this.isQuizLoading = false,
     this.aiError,
     this.isRecallActive = false,
     this.recallQuestion,
@@ -83,8 +113,10 @@ class ReaderState {
     String? rawText,
     String? summary,
     String? vivaQuestions,
+    List<InteractiveQuiz>? quizzes,
     bool? isSummaryLoading,
     bool? isVivaLoading,
+    bool? isQuizLoading,
     String? aiError,
     bool? isRecallActive,
     String? recallQuestion,
@@ -114,8 +146,10 @@ class ReaderState {
       rawText: rawText ?? this.rawText,
       summary: clearSummary ? null : (summary ?? this.summary),
       vivaQuestions: clearVivaQuestions ? null : (vivaQuestions ?? this.vivaQuestions),
+      quizzes: quizzes ?? this.quizzes,
       isSummaryLoading: isSummaryLoading ?? this.isSummaryLoading,
       isVivaLoading: isVivaLoading ?? this.isVivaLoading,
+      isQuizLoading: isQuizLoading ?? this.isQuizLoading,
       aiError: clearAiError ? null : (aiError ?? this.aiError),
       isRecallActive: isRecallActive ?? this.isRecallActive,
       recallQuestion: clearRecall ? null : (recallQuestion ?? this.recallQuestion),

@@ -96,4 +96,28 @@ class GroqService {
       );
     }
   }
+
+  Future<List<InteractiveQuiz>> generateQuiz(String context, int numQuestions, String difficulty) async {
+    final response = await _request(
+      'Create $numQuestions MCQs with $difficulty difficulty level from this Text: $context',
+      systemPrompt: 'You are an examiner. Generate conceptual MCQs from the text. Output ONLY a valid JSON array of objects exactly like this: [{"question": "...", "options": ["A","B","C","D"], "correctIndex": 0, "explanation": "Short 1-2 lines explanation."}]'
+    );
+    try {
+      final startIndex = response.indexOf('[');
+      final endIndex = response.lastIndexOf(']') + 1;
+      if (startIndex == -1 || endIndex == -1) throw Exception('No JSON array found');
+      
+      final jsonStr = response.substring(startIndex, endIndex);
+      final List data = jsonDecode(jsonStr);
+      
+      return data.map((json) => InteractiveQuiz(
+        question: json['question'] ?? 'Missing Question?',
+        options: List<String>.from(json['options'] ?? []),
+        correctIndex: json['correctIndex'] ?? 0,
+        explanation: json['explanation'] ?? '',
+      )).toList();
+    } catch (e) {
+      throw Exception('Failed to parse Quiz JSON. Please try again or adjust length. Error: $e');
+    }
+  }
 }

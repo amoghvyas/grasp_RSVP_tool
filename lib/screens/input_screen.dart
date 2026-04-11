@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/reader_provider.dart';
+import '../providers/theme_provider.dart';
 import '../widgets/animated_background.dart';
 import '../widgets/dropzone_widget.dart';
 import '../widgets/study_tools_panel.dart';
@@ -187,97 +188,107 @@ class _InputScreenState extends State<InputScreen> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: AnimatedBackground(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(
-              horizontal: sw < 600 ? 16 : 24,
-              vertical: 56,
-            ),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxWidth: sw > 800 ? 660 : double.infinity,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // ── Hero ─────────────────────────────────────────
-                  FadeSlideIn(child: _buildHero()),
-                  const SizedBox(height: 40),
-
-                  // ── Feature pills ────────────────────────────────
-                  FadeSlideIn(delayMs: 40, child: _buildFeaturePills()),
-                  const SizedBox(height: 32),
-
-                  // ── Welcome guide ───────────────────────────────
-                  FadeSlideIn(delayMs: 60, child: const WelcomeGuidePanel()),
-                  const SizedBox(height: 20),
-
-                  // ── Tabbed input (Paste / File / URL) ───────────
-                  FadeSlideIn(
-                    delayMs: 100,
-                    child: GlassCard(
-                      padding: EdgeInsets.zero,
-                      child: _buildTabbedInput(provider),
-                    ),
+        child: Stack(
+          children: [
+            Center(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.symmetric(
+                  horizontal: sw < 600 ? 16 : 24,
+                  vertical: 56,
+                ),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: sw > 800 ? 660 : double.infinity,
                   ),
-
-                  // ── Install ─────────────────────────────────────
-                  const SizedBox(height: 16),
-                  FadeSlideIn(delayMs: 120, child: _buildInstallButton()),
-
-                  // ── Error ───────────────────────────────────────
-                  if (_errorMessage != null) ...[
-                    const SizedBox(height: 16),
-                    FadeSlideIn(child: _buildError()),
-                  ],
-
-                  // ── File badge ──────────────────────────────────
-                  if (state.fileName != null) ...[
-                    const SizedBox(height: 16),
-                    FadeSlideIn(child: _buildFileBadge(state.fileName!)),
-                  ],
-
-                  // ── Content loaded section ──────────────────────
-                  if (state.hasContent) ...[
-                    const SizedBox(height: 28),
-                    FadeSlideIn(
-                      delayMs: 80,
-                      child: GlassCard(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 24, vertical: 20),
-                        accentBorderColor:
-                            const Color(0xFF6C63FF).withValues(alpha: 0.25),
-                        child: _buildContentStats(state),
-                      ),
-                    ),
-
-                    // AI Tools
-                    if (provider.isAiReady) ...[
-                      const SizedBox(height: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      FadeSlideIn(child: _buildHero()),
+                      const SizedBox(height: 40),
+                      FadeSlideIn(delayMs: 40, child: _buildFeaturePills()),
+                      const SizedBox(height: 32),
+                      FadeSlideIn(delayMs: 60, child: const WelcomeGuidePanel()),
+                      const SizedBox(height: 20),
                       FadeSlideIn(
-                        delayMs: 160,
-                        child: const StudyToolsPanel(),
+                        delayMs: 100,
+                        child: GlassCard(
+                          padding: EdgeInsets.zero,
+                          child: _buildTabbedInput(provider),
+                        ),
                       ),
+                      const SizedBox(height: 16),
+                      FadeSlideIn(delayMs: 120, child: _buildInstallButton()),
+                      if (_errorMessage != null) ...[
+                        const SizedBox(height: 16),
+                        FadeSlideIn(child: _buildError()),
+                      ],
+                      if (state.fileName != null) ...[
+                        const SizedBox(height: 16),
+                        FadeSlideIn(child: _buildFileBadge(state.fileName!)),
+                      ],
+                      if (state.hasContent) ...[
+                        const SizedBox(height: 28),
+                        FadeSlideIn(
+                          delayMs: 80,
+                          child: GlassCard(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 24, vertical: 20),
+                            accentBorderColor:
+                                const Color(0xFF6C63FF).withValues(alpha: 0.25),
+                            child: _buildContentStats(state),
+                          ),
+                        ),
+                        if (provider.isAiReady) ...[
+                          const SizedBox(height: 16),
+                          FadeSlideIn(
+                            delayMs: 160,
+                            child: const StudyToolsPanel(),
+                          ),
+                        ],
+                        const SizedBox(height: 28),
+                        FadeSlideIn(
+                          delayMs: 280,
+                          child: _buildStartButton(provider),
+                        ),
+                      ],
+                      const SizedBox(height: 60),
+                      _buildFooter(),
+                      const SizedBox(height: 48),
                     ],
-
-                    const SizedBox(height: 28),
-                    FadeSlideIn(
-                      delayMs: 280,
-                      child: _buildStartButton(provider),
-                    ),
-                  ],
-
-                  const SizedBox(height: 60),
-                  _buildFooter(),
-                  const SizedBox(height: 48),
-                ],
+                  ),
+                ),
               ),
             ),
-          ),
+            Positioned(
+              top: 16,
+              right: 20,
+              child: Consumer<ThemeProvider>(
+                builder: (context, theme, _) {
+                  return IconButton(
+                    icon: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      transitionBuilder: (child, anim) => RotationTransition(
+                        turns: child.key == const ValueKey('icon1') 
+                            ? Tween<double>(begin: 1, end: 0.75).animate(anim) 
+                            : Tween<double>(begin: 0.75, end: 1).animate(anim),
+                        child: ScaleTransition(scale: anim, child: child),
+                      ),
+                      child: theme.isDarkMode
+                          ? const Icon(Icons.nightlight_round, key: ValueKey('icon1'), color: Color(0xFF6C63FF))
+                          : const Icon(Icons.wb_sunny_rounded, key: ValueKey('icon2'), color: Colors.amber),
+                    ),
+                    onPressed: () => theme.toggle(),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
+
+
 
   // ════════════════════════════════════════════════════════════════════
   //  UI BUILDERS
@@ -856,24 +867,8 @@ class _InputScreenState extends State<InputScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 6,
-              height: 6,
-              decoration: BoxDecoration(
-                color: const Color(0xFF6C63FF),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF6C63FF).withValues(alpha: 0.6),
-                    blurRadius: 8,
-                    spreadRadius: 1,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 10),
             Text(
-              'Crafted with ❤️ by Amogh · Powered by Antigravity',
+              'Built by Amogh 🤝',
               style: GoogleFonts.inter(
                 fontSize: 12,
                 color: Colors.white.withValues(alpha: 0.22),

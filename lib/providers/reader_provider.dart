@@ -136,6 +136,30 @@ class ReaderProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> generateInteractiveQuiz(int count, String difficulty) async {
+    if (_state.rawText.isEmpty || !_groqService.isInitialized) return;
+    _state = _state.copyWith(isQuizLoading: true, clearAiError: true);
+    notifyListeners();
+    try {
+      final quizzes = await _groqService.generateQuiz(_state.rawText, count, difficulty);
+      _state = _state.copyWith(quizzes: quizzes, isQuizLoading: false);
+    } catch (e) {
+      _state = _state.copyWith(
+        isQuizLoading: false,
+        aiError: e.toString().replaceAll('Exception: ', ''),
+      );
+    }
+    notifyListeners();
+  }
+
+  void answerInteractiveQuiz(int quizIndex, int selectedOption) {
+    if (_state.quizzes == null || quizIndex >= _state.quizzes!.length) return;
+    final updatedQuizzes = List<InteractiveQuiz>.from(_state.quizzes!);
+    updatedQuizzes[quizIndex] = updatedQuizzes[quizIndex].copyWith(selectedIndex: selectedOption);
+    _state = _state.copyWith(quizzes: updatedQuizzes);
+    notifyListeners();
+  }
+
   // ── ACTIVE RECALL ──────────────────────────────────────────────
 
   Future<void> _triggerActiveRecall() async {
