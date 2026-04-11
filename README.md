@@ -140,7 +140,7 @@ flutter run -d chrome --dart-define=GEMINI_API_KEY=your_key
 3. Name: `GEMINI_API_KEY`, Value: your API key
 4. Push to `main` — the included GitHub Actions workflow handles the rest
 
-> **Note:** The free Gemini API tier (Gemini 2.0 Flash) includes 250K tokens/minute and ~1000 requests/day — more than enough for personal and student use.
+> **Note:** As of April 2026, Grasp includes a built-in community API key for Gemini 1.5 Flash (free tier), so most users don't need to provide their own. If you want to use your own private key, you can still inject it via `--dart-define` at build time.
 
 ---
 

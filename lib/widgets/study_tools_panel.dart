@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../providers/reader_provider.dart';
 
@@ -60,7 +61,9 @@ class _StudyToolsPanelState extends State<StudyToolsPanel>
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeInOut,
             alignment: Alignment.topCenter,
-            child: _buildTabContent(provider, state),
+            child: provider.isAiReady 
+                ? _buildTabContent(provider, state)
+                : _buildApiKeySetup(provider),
           ),
         ),
       ],
@@ -598,4 +601,86 @@ class _StudyToolsPanelState extends State<StudyToolsPanel>
         fontWeight: FontWeight.w700,
         color: Colors.white.withValues(alpha: 0.95),
       );
+
+  // ════════════════════════════════════════════════════════════════════
+  //  API KEY SETUP
+  // ════════════════════════════════════════════════════════════════════
+
+  Widget _buildApiKeySetup(ReaderProvider provider) {
+    final controller = TextEditingController();
+
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.vpn_key, color: Color(0xFF6C63FF), size: 20),
+              const SizedBox(width: 12),
+              Text(
+                'Gemini API Key Required',
+                style: GoogleFonts.inter(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'To use AI Study Tools, you need a free Gemini API key. Your key is stored only in your browser.',
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              color: Colors.white.withValues(alpha: 0.5),
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 20),
+          TextField(
+            controller: controller,
+            obscureText: true,
+            style: const TextStyle(fontSize: 13, color: Colors.white),
+            decoration: InputDecoration(
+              hintText: 'Paste your API key here...',
+              hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.2)),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              suffixIcon: IconButton(
+                icon: const Icon(Icons.check_circle, color: Color(0xFF6C63FF)),
+                onPressed: () {
+                  if (controller.text.trim().isNotEmpty) {
+                    provider.updateApiKey(controller.text.trim());
+                  }
+                },
+              ),
+            ),
+            onSubmitted: (val) {
+              if (val.trim().isNotEmpty) {
+                provider.updateApiKey(val.trim());
+              }
+            },
+          ),
+          const SizedBox(height: 16),
+          TextButton.icon(
+            onPressed: () => launchUrl(Uri.parse('https://aistudio.google.com/apikey')),
+            icon: const Icon(Icons.open_in_new, size: 14),
+            label: const Text('Get a free key at AI Studio'),
+            style: TextButton.styleFrom(
+              foregroundColor: const Color(0xFF00D9FF),
+              textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+              padding: EdgeInsets.zero,
+              alignment: Alignment.centerLeft,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

@@ -8,8 +8,12 @@ import 'screens/reader_screen.dart';
 
 /// Gemini API key injected at build time via:
 ///   flutter run --dart-define=GEMINI_API_KEY=your_key_here
-///   flutter build web --dart-define=GEMINI_API_KEY=your_key_here
-const _geminiApiKey = String.fromEnvironment('GEMINI_API_KEY');
+///
+/// If no key is provided, falls back to the community key (free tier).
+const _geminiApiKey = String.fromEnvironment(
+  'GEMINI_API_KEY',
+  defaultValue: 'AIzaSyA2KlwBX3mkFo30om9LUFYQhpqLoa_BNhEB',
+);
 
 void main() {
   // ── Syncfusion Community License ──────────────────────────────────

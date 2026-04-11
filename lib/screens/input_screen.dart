@@ -9,6 +9,7 @@ import '../providers/reader_provider.dart';
 import '../widgets/animated_background.dart';
 import '../widgets/dropzone_widget.dart';
 import '../widgets/study_tools_panel.dart';
+import '../widgets/welcome_guide_panel.dart';
 
 /// The input dashboard screen — the first screen users see.
 ///
@@ -188,6 +189,12 @@ class _InputScreenState extends State<InputScreen> {
                     child: _buildHeader(),
                   ),
                   const SizedBox(height: 48),
+
+                   // ── Welcome Guide ─────────────────────────────────
+                  FadeSlideIn(
+                    delayMs: 50,
+                    child: const WelcomeGuidePanel(),
+                  ),
 
                   // ── Text Input Card ────────────────────────────────
                   FadeSlideIn(

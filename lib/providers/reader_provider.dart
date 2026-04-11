@@ -38,6 +38,12 @@ class ReaderProvider extends ChangeNotifier {
     _geminiService.initialize(apiKey);
   }
 
+  /// Re-initializes Gemini with a new API key (e.g. entered manually).
+  void updateApiKey(String apiKey) {
+    _geminiService.initialize(apiKey);
+    notifyListeners();
+  }
+
   // ──────────────────────────────────────────────────────────────────
   //  TEXT LOADING
   // ──────────────────────────────────────────────────────────────────

@@ -13,11 +13,11 @@ class GeminiService {
   String _apiKey = '';
   bool _isInitialized = false;
 
-  /// Models to try in order — if one hits quota, fall back to the next.
+  /// Models to try in order — if one hits quota or is unavailable, fall back to the next.
   static const _fallbackModels = [
-    'gemini-2.5-flash',
-    'gemini-2.5-flash-lite',
-    'gemini-1.5-flash',
+    'gemini-1.5-flash', // Primary free-tier choice
+    'gemini-2.0-flash', // Next-gen fast model
+    'gemini-1.5-pro',   // High-quality fallback
   ];
 
   /// Whether the service has been initialized with a valid API key.
@@ -25,10 +25,13 @@ class GeminiService {
 
   /// Initializes the Gemini model with the provided API key.
   ///
-  /// [modelName] defaults to 'gemini-2.5-flash' which is the primary
-  /// free-tier model as of April 2026.
-  void initialize(String apiKey, {String modelName = 'gemini-2.5-flash'}) {
-    if (apiKey.isEmpty) return;
+  /// [modelName] defaults to 'gemini-1.5-flash' which is the primary
+  /// free-tier model.
+  void initialize(String apiKey, {String modelName = 'gemini-1.5-flash'}) {
+    if (apiKey.isEmpty) {
+      _isInitialized = false;
+      return;
+    }
     _apiKey = apiKey;
     _model = GenerativeModel(
       model: modelName,
@@ -141,8 +144,8 @@ $text
     try {
       return await _sendRequest(prompt);
     } on Exception catch (e) {
-      // If it's a quota error, try fallback models
-      if (_isQuotaError(e)) {
+      // If it's a quota or model availability error, try fallback models
+      if (_isFallbackWorthy(e)) {
         return _generateWithFallback(prompt);
       }
       rethrow;
@@ -211,9 +214,22 @@ $text
     }
 
     throw Exception(
-      'All Gemini models are at quota. Please wait a few minutes and try again, '
-      'or check your API key at https://aistudio.google.com/apikey',
+      'The Gemini API is currently unavailable or all models are at quota. '
+      'Please check your API key at https://aistudio.google.com/apikey and try again later.',
     );
+  }
+
+  /// Returns true if the exception is worth trying a fallback model.
+  bool _isFallbackWorthy(Exception e) {
+    final msg = e.toString().toLowerCase();
+    // Catch quota errors
+    if (_isQuotaError(e)) return true;
+    
+    // Catch model naming/availability errors
+    return msg.contains('not found') || 
+           msg.contains('model') || 
+           msg.contains('invalid') ||
+           msg.contains('unavailable');
   }
 
   /// Returns true if the exception is a quota/rate-limit error.
