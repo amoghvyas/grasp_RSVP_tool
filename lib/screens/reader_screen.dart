@@ -40,29 +40,26 @@ class ReaderScreen extends StatelessWidget {
                           alignment: Alignment.center,
                           children: [
                             // ── Focus Guides (ORP alignment) ────────────
-                            Positioned(
-                              top: MediaQuery.of(context).size.height / 2 - (state.fontSize / 2 + 32),
-                              bottom: MediaQuery.of(context).size.height / 2 - (state.fontSize / 2 + 32),
-                              child: Container(
-                                width: 2, // Slightly bolder for precision
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Container(
-                                      width: 2,
-                                      height: 16,
-                                      color: const Color(0xFFFF3B30), // Solid Apple Red
-                                    ),
-                                    Container(
-                                      width: 2,
-                                      height: 16,
-                                      color: const Color(0xFFFF3B30), // Solid Apple Red
-                                    ),
-                                  ],
-                                ),
+                            IgnorePointer(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 2,
+                                    height: 20,
+                                    color: const Color(0xFFFF3B30),
+                                  ),
+                                  // Dynamic gap based on current font size
+                                  SizedBox(height: state.fontSize * 1.1 + 20), 
+                                  Container(
+                                    width: 2,
+                                    height: 20,
+                                    color: const Color(0xFFFF3B30),
+                                  ),
+                                ],
                               ),
                             ),
-
+                            
                             Center(
                               child: state.hasContent
                                   ? AnimatedSwitcher(
