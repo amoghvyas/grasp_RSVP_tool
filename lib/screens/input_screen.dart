@@ -10,7 +10,6 @@ import '../widgets/animated_background.dart';
 import '../widgets/dropzone_widget.dart';
 import '../widgets/study_tools_panel.dart';
 import '../widgets/welcome_guide_panel.dart';
-import '../widgets/audio_settings_panel.dart';
 
 class InputScreen extends StatefulWidget {
   const InputScreen({super.key});
@@ -26,6 +25,7 @@ class _InputScreenState extends State<InputScreen> {
   bool _isLoading = false;
   bool _isInstallable = false;
   Timer? _installTimer;
+  int _inputTab = 0; // 0=Paste, 1=File, 2=URL
 
   @override
   void initState() {
@@ -202,64 +202,28 @@ class _InputScreenState extends State<InputScreen> {
                 children: [
                   // ── Hero ─────────────────────────────────────────
                   FadeSlideIn(child: _buildHero()),
-                  const SizedBox(height: 48),
+                  const SizedBox(height: 40),
 
-                  // ── Feature pills ── (new: shows what's inside)
+                  // ── Feature pills ────────────────────────────────
                   FadeSlideIn(delayMs: 40, child: _buildFeaturePills()),
-                  const SizedBox(height: 36),
+                  const SizedBox(height: 32),
 
                   // ── Welcome guide ───────────────────────────────
                   FadeSlideIn(delayMs: 60, child: const WelcomeGuidePanel()),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
 
-                  // ── Text input ──────────────────────────────────
+                  // ── Tabbed input (Paste / File / URL) ───────────
                   FadeSlideIn(
                     delayMs: 100,
                     child: GlassCard(
-                      padding: const EdgeInsets.all(24),
-                      child: _buildTextInput(provider),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  _buildOrDivider(40),
-                  const SizedBox(height: 16),
-
-                  // ── File upload ─────────────────────────────────
-                  FadeSlideIn(
-                    delayMs: 150,
-                    child: GlassCard(
-                      padding: const EdgeInsets.all(24),
-                      child: _buildFileUpload(provider),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  _buildOrDivider(180),
-                  const SizedBox(height: 16),
-
-                  // ── URL import ──────────────────────────────────
-                  FadeSlideIn(
-                    delayMs: 200,
-                    child: GlassCard(
-                      padding: const EdgeInsets.all(24),
-                      child: _buildUrlImport(provider),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // ── Study atmosphere ────────────────────────────
-                  FadeSlideIn(
-                    delayMs: 230,
-                    child: GlassCard(
-                      padding: const EdgeInsets.all(24),
-                      child: const AudioSettingsPanel(),
+                      padding: EdgeInsets.zero,
+                      child: _buildTabbedInput(provider),
                     ),
                   ),
 
                   // ── Install ─────────────────────────────────────
-                  const SizedBox(height: 20),
-                  FadeSlideIn(delayMs: 240, child: _buildInstallButton()),
+                  const SizedBox(height: 16),
+                  FadeSlideIn(delayMs: 120, child: _buildInstallButton()),
 
                   // ── Error ───────────────────────────────────────
                   if (_errorMessage != null) ...[
@@ -362,22 +326,22 @@ class _InputScreenState extends State<InputScreen> {
             textAlign: TextAlign.center,
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 16),
 
         Text(
-          'RSVP SPEED READER',
+          'ACADEMIC MASTERY ENGINE',
           style: GoogleFonts.inter(
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
-            color: Colors.white.withValues(alpha: 0.2),
-            letterSpacing: 7,
+            fontSize: 11,
+            fontWeight: FontWeight.w800,
+            color: Colors.white.withValues(alpha: 0.3),
+            letterSpacing: 4,
           ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 20),
 
         Text(
-          'Read faster. Retain more. Ace every exam.',
+          'Read faster. Absorb deeper. Ace every exam.',
           style: GoogleFonts.inter(
             fontSize: 17,
             color: Colors.white.withValues(alpha: 0.5),
@@ -435,53 +399,72 @@ class _InputScreenState extends State<InputScreen> {
     );
   }
 
-  Widget _buildOrDivider(int delayMs) {
-    return FadeSlideIn(
-      delayMs: delayMs,
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              height: 1,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(colors: [
-                  Colors.transparent,
-                  Colors.white.withValues(alpha: 0.08),
-                ]),
-              ),
+  Widget _buildTabbedInput(ReaderProvider provider) {
+    return Column(
+      children: [
+        // Tab Switcher
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.02),
+            border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.05))),
+          ),
+          child: Row(
+            children: [
+              _buildInputTab(0, 'Paste Text', Icons.edit_note_rounded, const Color(0xFF8B7FFF)),
+              _buildInputTab(1, 'Upload File', Icons.upload_file_rounded, const Color(0xFF00D9FF)),
+              _buildInputTab(2, 'Import URL', Icons.public_rounded, const Color(0xFFFF6B9D)),
+            ],
+          ),
+        ),
+        
+        // Tab Body
+        Padding(
+          padding: const EdgeInsets.all(24),
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            child: _inputTab == 0
+                ? _buildTextInput(provider)
+                : _inputTab == 1
+                    ? _buildFileUpload(provider)
+                    : _buildUrlImport(provider),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInputTab(int index, String label, IconData icon, Color color) {
+    final isSelected = _inputTab == index;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _inputTab = index),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected ? color.withValues(alpha: 0.08) : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected ? color.withValues(alpha: 0.3) : Colors.transparent,
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.04),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
-              ),
-              child: Text(
-                'OR',
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 18, color: isSelected ? color : Colors.white.withValues(alpha: 0.3)),
+              const SizedBox(height: 4),
+              Text(
+                label,
                 style: GoogleFonts.inter(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white.withValues(alpha: 0.18),
-                    letterSpacing: 3),
+                  fontSize: 11,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.3),
+                ),
               ),
-            ),
+            ],
           ),
-          Expanded(
-            child: Container(
-              height: 1,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(colors: [
-                  Colors.white.withValues(alpha: 0.08),
-                  Colors.transparent,
-                ]),
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

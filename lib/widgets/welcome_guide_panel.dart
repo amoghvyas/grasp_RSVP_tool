@@ -18,7 +18,7 @@ class _WelcomeGuidePanelState extends State<WelcomeGuidePanel> with SingleTicker
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 32),
+      margin: const EdgeInsets.only(bottom: 24),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(20),
@@ -68,7 +68,7 @@ class _WelcomeGuidePanelState extends State<WelcomeGuidePanel> with SingleTicker
                           const SizedBox(height: 4),
                           Text(
                             _isExpanded 
-                                ? 'Expert guide to supercharged learning'
+                                ? 'Expert guide to academic mastery'
                                 : 'How Grasp turns you into a high-speed learner...',
                             style: GoogleFonts.inter(
                               fontSize: 12,
@@ -101,28 +101,28 @@ class _WelcomeGuidePanelState extends State<WelcomeGuidePanel> with SingleTicker
                     _buildSection(
                       icon: Icons.bolt,
                       color: const Color(0xFF6C63FF),
-                      title: 'The RSVP High-Speed Edge',
-                      content: 'Grasp uses **RSVP (Rapid Serial Visual Presentation)** to eliminate "sub-vocalization" — the silent voice in your head that slows you down. By focusing your gaze on a single point, you bypass traditional reading blocks and process info up to **3-5x faster** with less eye fatigue.',
+                      title: 'The Focus-Flow Advantage',
+                      content: 'Grasp uses **Focus-Flow Reading** to eliminate distractions and "sub-vocalization" — that internal voice which limits your speed. By delivering material directly into your visual focus, you process information up to **5x faster** while maintaining deep engagement with the text.',
                     ),
                     const SizedBox(height: 24),
                     
                     _buildSection(
                       icon: Icons.psychology,
                       color: const Color(0xFF00D9FF),
-                      title: 'AI-Powered Retention',
-                      content: 'Speed is useless without retention. Grasp uses **Gemini AI** to generate structured summaries and viva-style Q&A from your material. Use the **Summary** for a quick refresher and the **Viva Q&A** to test your real understanding before exams.',
+                      title: 'Evidence-Based Retention',
+                      content: 'Speed is empty without mastery. Grasp integrates **Gemini AI** to instantly generate structured summaries and viva-style Q&A. Use the **Summary Engine** to map concepts and **Active Recall** to convert short-term info into permanent exam-ready knowledge.',
                     ),
                     const SizedBox(height: 24),
                     
                     _buildSection(
                       icon: Icons.tips_and_updates,
                       color: const Color(0xFFFF6B9D),
-                      title: 'Pro-Tips for Mastery',
+                      title: 'Strategic Mastery Loop',
                       items: [
-                        '**Start Steady**: Begin at 300-400 WPM. Your brain will adapt to the rhythm in minutes, and you can ramp up to 800+ WPM effortlessly.',
-                        '**Natural Pacing**: Notice the pauses at commas? That\'s our pacing engine giving your mind micro-moments to process complex ideas.',
-                        '**Hinglish Magic**: For intuitive recall, toggle **Hinglish** mode in AI tools. It uses language patterns that often lead to better "survival" memory for Indian students.',
-                        '**The "Exam Loop"**: PDF Load → Summary → High-Speed Read → Answer Q&A. Repeat once, and you own the subject.',
+                        '**Natural Acceleration**: Start at 300 WPM. Your brain will synchronize with the flow in seconds, allowing you to hit 700+ WPM with ease.',
+                        '**Bimodal Synergies**: Use the **Bimodal Reading (TTS)** toggle to hear words while you see them. This dual-input method increases comprehension by up to 30%.',
+                        '**The Exam Protocol**: PDF Upload → AI Summary → Rapid Focus Read → Viva Q&A. Complete this loop twice to own any complex topic.',
+                        '**Contextual Pacing**: Our engine automatically pauses at commas and hard stops, giving your mind micro-breaks to digest logic-heavy sentences.',
                       ],
                     ),
                   ],
