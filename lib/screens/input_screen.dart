@@ -259,7 +259,7 @@ class _InputScreenState extends State<InputScreen> {
                   isPrimary: false,
                   onPressed: () async {
                     final result = await FilePicker.platform.pickFiles();
-                    if (result != null) provider.loadFile(result.files.first);
+                    if (result != null) provider.loadFile(result.files.first.bytes, result.files.first.name);
                   },
                 ),
               ],
