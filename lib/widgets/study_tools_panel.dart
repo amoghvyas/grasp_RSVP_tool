@@ -1,3 +1,7 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/reader_state.dart';
@@ -75,6 +79,35 @@ class _StudyToolsPanelState extends State<StudyToolsPanel>
   // ════════════════════════════════════════════════════════════════════
   //  PANEL STRUCTURE
   // ════════════════════════════════════════════════════════════════════
+
+  Widget _buildEngineSwitcher(ReaderProvider provider, ReaderState state) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          _buildEngineOption(
+            label: 'Gemini',
+            subtitle: 'Standard Mode',
+            icon: Icons.auto_awesome,
+            isSelected: state.aiProvider == AiProvider.gemini,
+            onTap: () => provider.setAiProvider(AiProvider.gemini),
+          ),
+          _buildEngineOption(
+            label: 'OpenRouter',
+            subtitle: 'Infinite Mode',
+            icon: Icons.all_inclusive,
+            isSelected: state.aiProvider == AiProvider.openRouter,
+            onTap: () => provider.setAiProvider(AiProvider.openRouter),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildPanelHeader() {
     return Padding(

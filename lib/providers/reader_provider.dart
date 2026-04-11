@@ -42,6 +42,9 @@ class ReaderProvider extends ChangeNotifier {
 
   // ── LOADING DATA ──────────────────────────────────────────────
 
+  /// Legacy alias for loadFromText used by existing UI
+  void loadText(String text) => loadFromText(text);
+
   Future<void> loadFromText(String text, {String? fileName}) async {
     _state = _state.copyWith(
       rawText: text,
@@ -56,12 +59,25 @@ class ReaderProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> loadFile(dynamic bytes, String fileName) async {
+    try {
+      final content = await _fileService.parse(bytes, fileName);
+      await loadFromText(content, fileName: fileName);
+    } catch (e) {
+      // Propagation for UI error handling
+      rethrow;
+    }
+  }
+
   Future<void> loadFromUrl(String url) async {
     final text = await _urlService.fetchContent(url);
     await loadFromText(text, fileName: 'Web Content');
   }
 
   // ── AI STUDY TOOLS ─────────────────────────────────────────────
+
+  /// Legacy alias used by Main
+  void initializeAi(String apiKey) => updateApiKey(apiKey);
 
   Future<void> generateSummary({bool hinglish = false}) async {
     if (_state.rawText.isEmpty) return;
@@ -181,6 +197,21 @@ class ReaderProvider extends ChangeNotifier {
     _state = _state.copyWith(currentIndex: 0, isPlaying: false);
     notifyListeners();
   }
+  
+  void startReading() {
+    _state = _state.copyWith(
+      isReading: true,
+      currentIndex: 0,
+      isPlaying: false,
+    );
+    notifyListeners();
+  }
+
+  void stopReading() {
+    _cancelTimer();
+    _state = _state.copyWith(isReading: false, isPlaying: false);
+    notifyListeners();
+  }
 
   // ──────────────────────────────────────────────────────────────────
 
@@ -237,6 +268,12 @@ class ReaderProvider extends ChangeNotifier {
     await _focusService.setSound(s);
     _state = _state.copyWith(focusSound: s);
     _savePref('rsvp_focusSound', s.name);
+    notifyListeners();
+  }
+
+  void setFocusVolume(double volume) {
+    _focusService.setVolume(volume);
+    _state = _state.copyWith(focusVolume: volume);
     notifyListeners();
   }
 

@@ -1,3 +1,7 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+
 import '../models/reader_state.dart';
 import '../providers/reader_provider.dart';
 import '../widgets/active_recall_overlay.dart';

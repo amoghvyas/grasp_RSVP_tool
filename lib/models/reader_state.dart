@@ -1,4 +1,4 @@
-import 'focus_service.dart';
+import '../services/focus_service.dart';
 
 enum AiProvider { gemini, openRouter }
 
@@ -142,6 +142,14 @@ class ReaderState {
     final minutes = sprintTimeRemaining ~/ 60;
     final seconds = sprintTimeRemaining % 60;
     return '${minutes.toString().padLeft(2, "0")}:${seconds.toString().padLeft(2, "0")}';
+  }
+
+  String get estimatedTimeFormatted {
+    final remainingWords = words.length - currentIndex;
+    final totalSeconds = (remainingWords / wpm * 60).round();
+    final minutes = totalSeconds ~/ 60;
+    if (minutes < 1) return '< 1 min';
+    return '$minutes min';
   }
 
   bool get hasContent => words.isNotEmpty;
