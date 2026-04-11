@@ -245,7 +245,7 @@ class _InputScreenState extends State<InputScreen> {
           border: Border.all(color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05), width: 2),
         ),
         child: DropzoneWidget(
-          onFilesDropped: (files) => provider.loadFile(files.first),
+          onFileDropped: (bytes, fileName) => provider.loadFile(bytes, fileName),
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -281,7 +281,7 @@ class _InputScreenState extends State<InputScreen> {
           onPressed: () async {
             setState(() => _isLoading = true);
             try {
-              await provider.loadUrl(_urlController.text);
+              await provider.loadFromUrl(_urlController.text);
             } catch (e) {
               setState(() => _errorMessage = e.toString());
             } finally {
