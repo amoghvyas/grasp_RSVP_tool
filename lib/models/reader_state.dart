@@ -1,7 +1,9 @@
-/// Ephemeral data model for a single RSVP reading session.
+import '../services/focus_service.dart';
+
+/// Ephemeral and Persistent data model for an RSVP reading session.
 ///
-/// This state lives only for the current browser tab session.
-/// Closing the tab resets everything — no persistence layer is used.
+/// This state manages the current text, reading position, and
+/// AI-generated study aids.
 class ReaderState {
   /// The tokenized list of words to display.
   final List<String> words;
@@ -26,8 +28,7 @@ class ReaderState {
 
   // ── AI Study Tools ────────────────────────────────────────────────
 
-  /// The original raw text before sanitization (sent to Gemini as-is
-  /// for better context than tokenized words).
+  /// The original raw text before sanitization.
   final String rawText;
 
   /// AI-generated summary text (markdown-formatted).
@@ -45,6 +46,48 @@ class ReaderState {
   /// Error message from the last AI operation (null if no error).
   final String? aiError;
 
+  // ── Active Recall (The Mastery Layer) ─────────────────────────────
+
+  /// Whether we are currently showing an Active Recall prompt.
+  final bool isRecallActive;
+
+  /// The current AI-generated recall question.
+  final String? recallQuestion;
+
+  /// Multiple choice options for the recall question.
+  final List<String> recallOptions;
+
+  /// Index of the correct answer in [recallOptions].
+  final int? recallCorrectIndex;
+
+  /// Whether the user has answered the current recall question.
+  final bool hasAnsweredRecall;
+
+  /// Index of the user's selected option.
+  final int? selectedRecallIndex;
+
+  /// Number of words between recall prompts.
+  final int recallInterval;
+
+  // ── Multi-Modal (Audio) ───────────────────────────────────────────
+
+  /// Current ambient sound selection.
+  final FocusSound focusSound;
+
+  /// Volume for ambient sound (0.0 to 1.0).
+  final double focusVolume;
+
+  /// Whether bimodal reading (Audio TTS) is enabled.
+  final bool isTtsEnabled;
+
+  // ── Focus Sprints (Gamification) ──────────────────────────────────
+
+  /// Whether a timed Focus Sprint is active.
+  final bool isSprintActive;
+
+  /// Time remaining in the current sprint (in seconds).
+  final int sprintTimeRemaining;
+
   const ReaderState({
     this.words = const [],
     this.currentIndex = 0,
@@ -59,6 +102,18 @@ class ReaderState {
     this.isSummaryLoading = false,
     this.isVivaLoading = false,
     this.aiError,
+    this.isRecallActive = false,
+    this.recallQuestion,
+    this.recallOptions = const [],
+    this.recallCorrectIndex,
+    this.hasAnsweredRecall = false,
+    this.selectedRecallIndex,
+    this.recallInterval = 200,
+    this.focusSound = FocusSound.none,
+    this.focusVolume = 0.5,
+    this.isTtsEnabled = false,
+    this.isSprintActive = false,
+    this.sprintTimeRemaining = 1500, // Default 25m
   });
 
   /// Creates a copy of this state with the specified fields overridden.
@@ -76,10 +131,18 @@ class ReaderState {
     bool? isSummaryLoading,
     bool? isVivaLoading,
     String? aiError,
+    bool? isRecallActive,
+    String? recallQuestion,
+    List<String>? recallOptions,
+    int? recallCorrectIndex,
+    bool? hasAnsweredRecall,
+    int? selectedRecallIndex,
+    int? recallInterval,
     // Sentinel values to allow setting nullable fields to null
     bool clearSummary = false,
     bool clearVivaQuestions = false,
     bool clearAiError = false,
+    bool clearRecall = false,
   }) {
     return ReaderState(
       words: words ?? this.words,
@@ -95,7 +158,26 @@ class ReaderState {
       isSummaryLoading: isSummaryLoading ?? this.isSummaryLoading,
       isVivaLoading: isVivaLoading ?? this.isVivaLoading,
       aiError: clearAiError ? null : (aiError ?? this.aiError),
+      isRecallActive: isRecallActive ?? this.isRecallActive,
+      recallQuestion: clearRecall ? null : (recallQuestion ?? this.recallQuestion),
+      recallOptions: clearRecall ? const [] : (recallOptions ?? this.recallOptions),
+      recallCorrectIndex: clearRecall ? null : (recallCorrectIndex ?? this.recallCorrectIndex),
+      hasAnsweredRecall: clearRecall ? false : (hasAnsweredRecall ?? this.hasAnsweredRecall),
+      selectedRecallIndex: clearRecall ? null : (selectedRecallIndex ?? this.selectedRecallIndex),
+      recallInterval: recallInterval ?? this.recallInterval,
+      focusSound: focusSound ?? this.focusSound,
+      focusVolume: focusVolume ?? this.focusVolume,
+      isTtsEnabled: isTtsEnabled ?? this.isTtsEnabled,
+      isSprintActive: isSprintActive ?? this.isSprintActive,
+      sprintTimeRemaining: sprintTimeRemaining ?? this.sprintTimeRemaining,
     );
+  }
+
+  /// Formatted sprint time (MM:SS).
+  String get sprintTimeFormatted {
+    final minutes = sprintTimeRemaining ~/ 60;
+    final seconds = sprintTimeRemaining % 60;
+    return '${minutes.toString().padLeft(2, "0")}:${seconds.toString().padLeft(2, "0")}';
   }
 
   /// Whether any text has been loaded (from paste or file upload).

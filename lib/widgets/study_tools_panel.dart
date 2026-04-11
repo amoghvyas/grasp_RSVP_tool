@@ -384,7 +384,22 @@ class _StudyToolsPanelState extends State<StudyToolsPanel>
               color: Colors.white.withValues(alpha: 0.5),
             ),
           ),
-          const SizedBox(height: 4),
+          if (state.vivaQuestions != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: OutlinedButton.icon(
+                onPressed: () => provider.exportToFlashcards(),
+                icon: const Icon(Icons.download_for_offline, size: 16),
+                label: const Text('Save as Flashcards (Anki/CSV)'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFF00D9FF),
+                  side: BorderSide(color: const Color(0xFF00D9FF).withValues(alpha: 0.3)),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ),
+          const SizedBox(height: 24),
           Text(
             'This may take a few seconds...',
             style: GoogleFonts.inter(

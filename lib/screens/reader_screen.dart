@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/reader_provider.dart';
+import '../widgets/active_recall_overlay.dart';
+import '../widgets/animated_background.dart';
 import '../widgets/settings_overlay.dart';
 import '../widgets/word_display.dart';
 
@@ -58,8 +60,8 @@ class ReaderScreen extends StatelessWidget {
                 child: SizedBox.expand(
                   child: Column(
                     children: [
-                      // ── Top bar ────────────────────────────────────
-                      _buildTopBar(state),
+                      // ── RSVP Display ─────────────────────────────────────
+                      _buildReaderContent(state),
 
                       // ── Main reading area ──────────────────────────
                       Expanded(
@@ -96,6 +98,9 @@ class ReaderScreen extends StatelessWidget {
                 ),
               ),
 
+              // ── Top Bar (Sprint Info) ─────────────────────────────
+              _buildTopBar(provider, state),
+
               // ── Play/Pause indicator ───────────────────────────────
               if (!state.isPlaying && state.hasContent)
                 Positioned(
@@ -126,6 +131,9 @@ class ReaderScreen extends StatelessWidget {
               Positioned.fill(
                 child: SettingsOverlay(visible: !state.isPlaying),
               ),
+              
+              // ── Active Recall Overlay ──────────────────────────────
+              const ActiveRecallOverlay(),
             ],
           ),
         );
@@ -134,7 +142,79 @@ class ReaderScreen extends StatelessWidget {
   }
 
   /// Top bar with word counter and WPM badge.
-  Widget _buildTopBar(state) {
+  Widget _buildTopBar(ReaderProvider provider, state) {
+    if (!state.isSprintActive) {
+      return Positioned(
+        top: 24,
+        right: 24,
+        child: _buildSprintLauncher(provider),
+      );
+    }
+
+    return Positioned(
+      top: 24,
+      left: 0,
+      right: 0,
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFF6C63FF).withValues(alpha: 0.3)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.timer, size: 14, color: Color(0xFF6C63FF)),
+              const SizedBox(width: 10),
+              Text(
+                'SPRINT: ${state.sprintTimeFormatted}',
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  letterSpacing: 1.2,
+                ),
+              ),
+              const SizedBox(width: 10),
+              IconButton(
+                onPressed: () => provider.stopSprint(),
+                icon: const Icon(Icons.close, size: 14, color: Colors.white24),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSprintLauncher(ReaderProvider provider) {
+    return PopupMenuButton<int>(
+      onSelected: (mins) => provider.startSprint(mins),
+      offset: const Offset(0, 48),
+      color: const Color(0xFF1A1A2E),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      itemBuilder: (context) => [
+        const PopupMenuItem(value: 15, child: Text('15 Min Sprint')),
+        const PopupMenuItem(value: 25, child: Text('25 Min Sprint')),
+        const PopupMenuItem(value: 50, child: Text('50 Min Sprint (Deep Work)')),
+      ],
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.05),
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        ),
+        child: const Icon(Icons.timer_outlined, size: 20, color: Colors.white54),
+      ),
+    );
+  }
+
+  Widget _buildReaderContent(state) {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),

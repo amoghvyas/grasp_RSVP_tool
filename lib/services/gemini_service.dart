@@ -132,6 +132,55 @@ $text
   }
 
   // ──────────────────────────────────────────────────────────────────
+  //  ACTIVE RECALL (CHECKPOINTS)
+  // ──────────────────────────────────────────────────────────────────
+
+  /// Generates a single tricky multiple-choice question based on the [text].
+  ///
+  /// Forces a specific format: Question | Option1 | Option2 | Option3 | Option4 | CorrectIndex (0-3)
+  Future<RecallQuestion> generateRecallQuestion(String text) async {
+    _ensureInitialized();
+
+    final prompt = '''
+You are a master educator testing a student's retention after speed-reading the following text.
+Generate exactly ONE high-quality multiple-choice question.
+
+STRICT REQUIREMENTS:
+1. The question must test for a CRITICAL fact or concept from the text.
+2. Provide exactly 4 options.
+3. One option must be correct; three must be plausible but incorrect "distractors".
+4. Output must be in this EXACT format (no preamble, no markdown):
+QUESTION_START|Question Text|Option A|Option B|Option C|Option D|CorrectIndex(0-3)|QUESTION_END
+
+TEXT:
+$text
+''';
+
+    final response = await _generate(prompt);
+    return _parseRecallQuestion(response);
+  }
+
+  RecallQuestion _parseRecallQuestion(String rawResponse) {
+    try {
+      final parts = rawResponse.split('|');
+      if (parts.length < 7) throw Exception('Invalid format');
+      
+      return RecallQuestion(
+        question: parts[1],
+        options: [parts[2], parts[3], parts[4], parts[5]],
+        correctIndex: int.parse(parts[6].replaceAll(RegExp(r'[^0-9]'), '')),
+      );
+    } catch (e) {
+      // Fallback if parsing fails
+      return RecallQuestion(
+        question: 'What is the main topic of the text just read?',
+        options: ['General Concept', 'Specific Detail', 'Technical Term', 'Introduction'],
+        correctIndex: 0,
+      );
+    }
+  }
+
+  // ──────────────────────────────────────────────────────────────────
   //  INTERNAL
   // ──────────────────────────────────────────────────────────────────
 
@@ -251,5 +300,18 @@ $text
       );
     }
   }
+}
+
+/// Simple DTO for Active Recall questions.
+class RecallQuestion {
+  final String question;
+  final List<String> options;
+  final int correctIndex;
+
+  const RecallQuestion({
+    required this.question,
+    required this.options,
+    required this.correctIndex,
+  });
 }
 

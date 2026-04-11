@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/reader_provider.dart';
+import 'audio_settings_panel.dart';
 
 /// Translucent overlay shown when the RSVP reader is paused.
 ///
@@ -79,66 +80,32 @@ class SettingsOverlay extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 32),
-
-                      // ── WPM Slider ────────────────────────────────
-                      _buildSliderSection(
-                        icon: Icons.speed,
-                        label: 'Reading Speed',
-                        value: '${state.wpm} WPM',
-                        slider: Slider(
-                          value: state.wpm.toDouble(),
-                          min: 100,
-                          max: 1000,
-                          divisions: 90,
-                          label: '${state.wpm} WPM',
-                          onChanged: (v) => provider.setWpm(v.round()),
-                        ),
-                        hint: _getWpmHint(state.wpm),
-                      ),
-
                       const SizedBox(height: 24),
 
-                      // ── Font Size Slider ──────────────────────────
-                      _buildSliderSection(
-                        icon: Icons.text_fields,
-                        label: 'Font Size',
-                        value: '${state.fontSize.round()}px',
-                        slider: Slider(
-                          value: state.fontSize,
-                          min: 24,
-                          max: 120,
-                          divisions: 96,
-                          label: '${state.fontSize.round()}px',
-                          onChanged: (v) => provider.setFontSize(v),
+                      // Scrollable content
+                      Flexible(
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildWpmSection(state, provider),
+                              const SizedBox(height: 24),
+                              _buildFontSizeSection(state, provider),
+                              const SizedBox(height: 24),
+                              const Divider(color: Colors.white10, height: 1),
+                              const SizedBox(height: 24),
+                              const AudioSettingsPanel(),
+                              const SizedBox(height: 24),
+                              const Divider(color: Colors.white10, height: 1),
+                              const SizedBox(height: 24),
+                              _buildProgressSection(state),
+                            ],
+                          ),
                         ),
                       ),
 
                       const SizedBox(height: 32),
-
-                      // ── Progress info ─────────────────────────────
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.03),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            _buildStat(
-                              'Progress',
-                              '${state.currentIndex + 1} / ${state.totalWords}',
-                            ),
-                            _buildStat(
-                              'Remaining',
-                              _formatRemaining(state),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 24),
 
                       // ── Controls ──────────────────────────────────
                       Row(
@@ -196,6 +163,62 @@ class SettingsOverlay extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildWpmSection(state, provider) {
+    return _buildSliderSection(
+      icon: Icons.speed,
+      label: 'Reading Speed',
+      value: '${state.wpm} WPM',
+      slider: Slider(
+        value: state.wpm.toDouble(),
+        min: 100,
+        max: 1000,
+        divisions: 90,
+        label: '${state.wpm} WPM',
+        onChanged: (v) => provider.setWpm(v.round()),
+      ),
+      hint: _getWpmHint(state.wpm),
+    );
+  }
+
+  Widget _buildFontSizeSection(state, provider) {
+    return _buildSliderSection(
+      icon: Icons.text_fields,
+      label: 'Font Size',
+      value: '${state.fontSize.round()}px',
+      slider: Slider(
+        value: state.fontSize,
+        min: 24,
+        max: 120,
+        divisions: 96,
+        label: '${state.fontSize.round()}px',
+        onChanged: (v) => provider.setFontSize(v),
+      ),
+    );
+  }
+
+  Widget _buildProgressSection(state) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _buildStat(
+            'Progress',
+            '${state.currentIndex + 1} / ${state.totalWords}',
+          ),
+          _buildStat(
+            'Remaining',
+             _formatRemaining(state),
+          ),
+        ],
       ),
     );
   }

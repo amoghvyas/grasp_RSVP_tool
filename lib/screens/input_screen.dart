@@ -10,6 +10,7 @@ import '../widgets/animated_background.dart';
 import '../widgets/dropzone_widget.dart';
 import '../widgets/study_tools_panel.dart';
 import '../widgets/welcome_guide_panel.dart';
+import '../widgets/audio_settings_panel.dart';
 
 /// The input dashboard screen — the first screen users see.
 ///
@@ -27,6 +28,7 @@ class InputScreen extends StatefulWidget {
 
 class _InputScreenState extends State<InputScreen> {
   final _textController = TextEditingController();
+  final _urlController = TextEditingController();
   String? _errorMessage;
   bool _isLoading = false;
   bool _isInstallable = false;
@@ -47,6 +49,7 @@ class _InputScreenState extends State<InputScreen> {
   @override
   void dispose() {
     _textController.dispose();
+    _urlController.dispose();
     _installTimer?.cancel();
     super.dispose();
   }
@@ -219,6 +222,34 @@ class _InputScreenState extends State<InputScreen> {
                     child: GlassCard(
                       padding: const EdgeInsets.all(24),
                       child: _buildFileUpload(provider),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // ── OR Divider ───────────────────────────────────
+                  FadeSlideIn(
+                    delayMs: 220,
+                    child: _buildDivider(),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // ── URL Import Card ───────────────────────────────
+                  FadeSlideIn(
+                    delayMs: 240,
+                    child: GlassCard(
+                      padding: const EdgeInsets.all(24),
+                      child: _buildUrlImport(provider),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const SizedBox(height: 20),
+
+                  // ── Audio Focus Card ───────────────────────────────
+                  FadeSlideIn(
+                    delayMs: 250,
+                    child: GlassCard(
+                      padding: const EdgeInsets.all(24),
+                      child: const AudioSettingsPanel(),
                     ),
                   ),
                   
@@ -741,6 +772,71 @@ class _InputScreenState extends State<InputScreen> {
       _textController.clear();
     } catch (e) {
       setState(() => _errorMessage = e.toString());
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Widget _buildUrlImport(ReaderProvider provider) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: const Color(0xFF6C63FF).withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.link, size: 16, color: Color(0xFF6C63FF)),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              'Read from URL',
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.white.withValues(alpha: 0.7),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        TextField(
+          controller: _urlController,
+          style: const TextStyle(fontSize: 13, color: Colors.white),
+          decoration: InputDecoration(
+            hintText: 'Paste any article or research link...',
+            hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.2)),
+            suffixIcon: IconButton(
+              icon: _isLoading 
+                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                : const Icon(Icons.bolt, color: Color(0xFF6C63FF)),
+              onPressed: () => _handleUrlFetch(provider),
+            ),
+          ),
+          onSubmitted: (_) => _handleUrlFetch(provider),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _handleUrlFetch(ReaderProvider provider) async {
+    final url = _urlController.text.trim();
+    if (url.isEmpty) return;
+    
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      await provider.loadFromUrl(url);
+      _urlController.clear();
+      _textController.clear();
+    } catch (e) {
+      setState(() => _errorMessage = 'Could not fetch content. Some sites may be protected.');
     } finally {
       setState(() => _isLoading = false);
     }
