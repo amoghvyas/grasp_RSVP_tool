@@ -1,9 +1,7 @@
 import 'dart:convert';
 import 'dart:async';
-import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:html' as html;
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:csv/csv.dart';
 
@@ -16,17 +14,16 @@ import '../services/sanitizer_service.dart';
 import '../services/tts_service.dart';
 import '../services/url_import_service.dart';
 
+// Conditional import: dart:html on web, stub on other platforms
+import 'download_stub.dart'
+    if (dart.library.html) 'download_html.dart';
+
 /// Central state manager for the RSVP reader.
-///
-/// Orchestrates text processing, pacing, AI generation,
-/// atmosphere (audio), and state persistence.
 class ReaderProvider extends ChangeNotifier {
   ReaderState _state = const ReaderState();
   ReaderState get state => _state;
 
   // ── Services ──────────────────────────────────────────────────
-  final FileParserService _fileService = FileParserService();
-  final SanitizerService _sanitizer = SanitizerService();
   final GeminiService _geminiService = GeminiService();
   final FocusService _focusService = FocusService();
   final TtsService _ttsService = TtsService();
@@ -42,48 +39,49 @@ class ReaderProvider extends ChangeNotifier {
 
   // ── LOADING DATA ──────────────────────────────────────────────
 
-  /// Legacy alias for loadFromText used by existing UI
+  /// Legacy alias used by InputScreen
   void loadText(String text) => loadFromText(text);
 
   Future<void> loadFromText(String text, {String? fileName}) async {
+    // SanitizerService.sanitize is static — returns List<String>
+    final words = SanitizerService.sanitize(text);
     _state = _state.copyWith(
       rawText: text,
+      words: words,
       fileName: fileName,
+      currentIndex: 0,
       clearSummary: true,
       clearVivaQuestions: true,
       clearRecall: true,
     );
-    final sanitized = _sanitizer.sanitize(text);
-    final words = sanitized.split(RegExp(r'\s+')).where((w) => w.isNotEmpty).toList();
-    _state = _state.copyWith(words: words, currentIndex: 0);
     notifyListeners();
   }
 
   Future<void> loadFile(dynamic bytes, String fileName) async {
     try {
-      final content = await _fileService.parse(bytes, fileName);
+      // FileParserService.parseFile is static
+      final content = FileParserService.parseFile(bytes, fileName);
       await loadFromText(content, fileName: fileName);
     } catch (e) {
-      // Propagation for UI error handling
       rethrow;
     }
   }
 
   Future<void> loadFromUrl(String url) async {
-    final text = await _urlService.fetchContent(url);
+    // UrlImportService uses instance method fetchUrlContent
+    final text = await _urlService.fetchUrlContent(url);
     await loadFromText(text, fileName: 'Web Content');
   }
 
   // ── AI STUDY TOOLS ─────────────────────────────────────────────
 
-  /// Legacy alias used by Main
+  /// Legacy alias used by main.dart
   void initializeAi(String apiKey) => updateApiKey(apiKey);
 
   Future<void> generateSummary({bool hinglish = false}) async {
     if (_state.rawText.isEmpty) return;
     _state = _state.copyWith(isSummaryLoading: true, clearAiError: true);
     notifyListeners();
-
     try {
       final summary = _state.aiProvider == AiProvider.gemini
           ? await _geminiService.generateSummary(_state.rawText, hinglish: hinglish)
@@ -99,7 +97,6 @@ class ReaderProvider extends ChangeNotifier {
     if (_state.rawText.isEmpty) return;
     _state = _state.copyWith(isVivaLoading: true, clearAiError: true);
     notifyListeners();
-
     try {
       final questions = _state.aiProvider == AiProvider.gemini
           ? await _geminiService.generateVivaQuestions(_state.rawText, hinglish: hinglish)
@@ -126,13 +123,7 @@ class ReaderProvider extends ChangeNotifier {
     }
     final csvData = const ListToCsvConverter().convert(rows);
     if (kIsWeb) {
-      final bytes = utf8.encode(csvData);
-      final blob = html.Blob([bytes], 'text/csv');
-      final url = html.Url.createObjectUrlFromBlob(blob);
-      final anchor = html.AnchorElement(href: url)
-        ..download = 'Grasp_Flashcards_${_state.fileName ?? "Pasted"}.csv'
-        ..click();
-      html.Url.revokeObjectUrl(url);
+      downloadCsv(csvData, 'Grasp_Flashcards_${_state.fileName ?? "Pasted"}.csv');
     }
   }
 
@@ -142,7 +133,6 @@ class ReaderProvider extends ChangeNotifier {
     pause();
     _state = _state.copyWith(isRecallActive: true, clearRecall: true);
     notifyListeners();
-
     try {
       final start = (_state.currentIndex - 300).clamp(0, _state.totalWords);
       final contextText = _state.words.sublist(start, _state.currentIndex).join(' ');
@@ -188,22 +178,22 @@ class ReaderProvider extends ChangeNotifier {
   }
 
   void togglePlayPause() => _state.isPlaying ? pause() : play();
+
   void rewind([int count = 10]) {
-    _state = _state.copyWith(currentIndex: (_state.currentIndex - count).clamp(0, _state.totalWords - 1));
+    _state = _state.copyWith(
+      currentIndex: (_state.currentIndex - count).clamp(0, _state.totalWords - 1),
+    );
     notifyListeners();
   }
+
   void reset() {
     _cancelTimer();
     _state = _state.copyWith(currentIndex: 0, isPlaying: false);
     notifyListeners();
   }
-  
+
   void startReading() {
-    _state = _state.copyWith(
-      isReading: true,
-      currentIndex: 0,
-      isPlaying: false,
-    );
+    _state = _state.copyWith(isReading: true, currentIndex: 0, isPlaying: false);
     notifyListeners();
   }
 
@@ -213,18 +203,19 @@ class ReaderProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ──────────────────────────────────────────────────────────────────
-
   void _scheduleNextWord() {
     _cancelTimer();
     if (!_state.isPlaying || _state.isRecallActive) return;
-    if (_state.currentIndex >= _state.totalWords) { pause(); return; }
-
-    if (_state.currentIndex > 0 && _state.currentIndex % _state.recallInterval == 0 && !_state.isRecallActive) {
+    if (_state.currentIndex >= _state.totalWords) {
+      pause();
+      return;
+    }
+    if (_state.currentIndex > 0 &&
+        _state.currentIndex % _state.recallInterval == 0 &&
+        !_state.isRecallActive) {
       _triggerActiveRecall();
       return;
     }
-
     _timer = Timer(Duration(milliseconds: _calculateDelay()), () {
       if (!_state.isPlaying) return;
       final nextIndex = _state.currentIndex + 1;
@@ -331,8 +322,14 @@ class ReaderProvider extends ChangeNotifier {
     final ttsEnabled = (prefs.getInt('rsvp_ttsEnabled') ?? 0) == 1;
     final aiProviderName = prefs.getString('rsvp_aiProvider') ?? AiProvider.gemini.name;
 
-    final focusSound = FocusSound.values.firstWhere((s) => s.name == focusSoundName, orElse: () => FocusSound.none);
-    final aiProvider = AiProvider.values.firstWhere((p) => p.name == aiProviderName, orElse: () => AiProvider.gemini);
+    final focusSound = FocusSound.values.firstWhere(
+      (s) => s.name == focusSoundName,
+      orElse: () => FocusSound.none,
+    );
+    final aiProvider = AiProvider.values.firstWhere(
+      (p) => p.name == aiProviderName,
+      orElse: () => AiProvider.gemini,
+    );
 
     _state = _state.copyWith(
       wpm: wpm,
@@ -350,7 +347,15 @@ class ReaderProvider extends ChangeNotifier {
     else if (val is String) await prefs.setString(key, val);
   }
 
-  void _cancelTimer() { _timer?.cancel(); _timer = null; }
+  void _cancelTimer() {
+    _timer?.cancel();
+    _timer = null;
+  }
+
   @override
-  void dispose() { _cancelTimer(); _sprintTimer?.cancel(); super.dispose(); }
+  void dispose() {
+    _cancelTimer();
+    _sprintTimer?.cancel();
+    super.dispose();
+  }
 }

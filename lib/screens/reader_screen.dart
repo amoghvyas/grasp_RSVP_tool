@@ -2,20 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-import '../models/reader_state.dart';
 import '../providers/reader_provider.dart';
-import '../widgets/active_recall_overlay.dart';
 import '../widgets/animated_background.dart';
 import '../widgets/settings_overlay.dart';
 import '../widgets/word_display.dart';
+import '../widgets/active_recall_overlay.dart';
 
-/// The full-screen RSVP reading canvas.
-///
-/// Premium reading experience with:
-/// - Pure black background for zero distraction
-/// - Smooth word transitions with animated opacity
-/// - Gradient progress bar with glow effect
-/// - Gesture-based controls covering the entire screen
+/// The full-screen RSVP reading canvas — distraction-free reading mode.
 class ReaderScreen extends StatelessWidget {
   const ReaderScreen({super.key});
 
@@ -27,20 +20,20 @@ class ReaderScreen extends StatelessWidget {
         final screenWidth = MediaQuery.of(context).size.width;
 
         return Scaffold(
-          backgroundColor: const Color(0xFF020204),
+          backgroundColor: const Color(0xFF020208),
           body: Stack(
             children: [
-              // ── Subtle ambient glow behind the word ─────────────────
+              // ── Subtle ambient glow ────────────────────────────────
               if (state.isPlaying)
                 Center(
                   child: Container(
-                    width: 300,
-                    height: 300,
+                    width: 360,
+                    height: 360,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: RadialGradient(
                         colors: [
-                          const Color(0xFF6C63FF).withValues(alpha: 0.03),
+                          const Color(0xFF6C63FF).withValues(alpha: 0.04),
                           Colors.transparent,
                         ],
                       ),
@@ -48,7 +41,7 @@ class ReaderScreen extends StatelessWidget {
                   ),
                 ),
 
-              // ── Main tap area (play/pause) ──────────────────────────
+              // ── Main tap zone ──────────────────────────────────────
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: () => provider.togglePlayPause(),
@@ -61,21 +54,17 @@ class ReaderScreen extends StatelessWidget {
                 child: SizedBox.expand(
                   child: Column(
                     children: [
-                      // ── RSVP Display ─────────────────────────────────────
-                      _buildReaderContent(state),
+                      // ── Top stats bar ────────────────────────────
+                      _buildTopBar(context, provider, state),
 
-                      // ── Main reading area ──────────────────────────
+                      // ── Word display ─────────────────────────────
                       Expanded(
                         child: Center(
                           child: state.hasContent
                               ? AnimatedSwitcher(
-                                  duration: const Duration(milliseconds: 80),
-                                  transitionBuilder: (child, animation) {
-                                    return FadeTransition(
-                                      opacity: animation,
-                                      child: child,
-                                    );
-                                  },
+                                  duration: const Duration(milliseconds: 75),
+                                  transitionBuilder: (child, animation) =>
+                                      FadeTransition(opacity: animation, child: child),
                                   child: WordDisplay(
                                     key: ValueKey(state.currentIndex),
                                     word: state.currentWord,
@@ -92,48 +81,55 @@ class ReaderScreen extends StatelessWidget {
                         ),
                       ),
 
-                      // ── Bottom progress bar ────────────────────────
+                      // ── Progress bar ─────────────────────────────
                       _buildProgressBar(state),
                     ],
                   ),
                 ),
               ),
 
-              // ── Top Bar (Sprint Info) ─────────────────────────────
-              _buildTopBar(provider, state),
-
-              // ── Play/Pause indicator ───────────────────────────────
-              if (!state.isPlaying && state.hasContent)
+              // ── Paused hint ────────────────────────────────────────
+              if (!state.isPlaying && state.hasContent && !state.isRecallActive)
                 Positioned(
-                  bottom: 56,
+                  bottom: 60,
                   left: 0,
                   right: 0,
                   child: Center(
                     child: AnimatedOpacity(
-                      opacity: 0.3,
-                      duration: const Duration(milliseconds: 300),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.05),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.pause_rounded,
-                          size: 24,
-                          color: Colors.white24,
-                        ),
+                      opacity: 0.35,
+                      duration: const Duration(milliseconds: 400),
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.06),
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                            ),
+                            child: const Icon(Icons.pause_rounded, size: 22, color: Colors.white54),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Tap to resume',
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              color: Colors.white24,
+                              letterSpacing: 1,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
                 ),
 
-              // ── Settings overlay (shown when paused) ───────────────
+              // ── Settings overlay ────────────────────────────────────
               Positioned.fill(
-                child: SettingsOverlay(visible: !state.isPlaying),
+                child: SettingsOverlay(visible: !state.isPlaying && !state.isRecallActive),
               ),
-              
-              // ── Active Recall Overlay ──────────────────────────────
+
+              // ── Active recall overlay ───────────────────────────────
               const ActiveRecallOverlay(),
             ],
           ),
@@ -142,83 +138,52 @@ class ReaderScreen extends StatelessWidget {
     );
   }
 
-  /// Top bar with word counter and WPM badge.
-  Widget _buildTopBar(ReaderProvider provider, ReaderState state) {
-    if (!state.isSprintActive) {
-      return Positioned(
-        top: 24,
-        right: 24,
-        child: _buildSprintLauncher(provider),
-      );
-    }
-
-    return Positioned(
-      top: 24,
-      left: 0,
-      right: 0,
-      child: Center(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFF6C63FF).withValues(alpha: 0.3)),
-          ),
+  Widget _buildTopBar(BuildContext context, ReaderProvider provider, state) {
+    if (state.isSprintActive) {
+      return SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           child: Row(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.timer, size: 14, color: Color(0xFF6C63FF)),
-              const SizedBox(width: 10),
-              Text(
-                'SPRINT: ${state.sprintTimeFormatted}',
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                  letterSpacing: 1.2,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF6C63FF).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: const Color(0xFF6C63FF).withValues(alpha: 0.3)),
                 ),
-              ),
-              const SizedBox(width: 10),
-              IconButton(
-                onPressed: () => provider.stopSprint(),
-                icon: const Icon(Icons.close, size: 14, color: Colors.white24),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.timer_rounded, size: 14, color: Color(0xFF6C63FF)),
+                    const SizedBox(width: 8),
+                    Text(
+                      'SPRINT  ${state.sprintTimeFormatted}',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    GestureDetector(
+                      onTap: () => provider.stopSprint(),
+                      child: const Icon(Icons.close_rounded, size: 14, color: Colors.white30),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
         ),
-      ),
-    );
-  }
+      );
+    }
 
-  Widget _buildSprintLauncher(ReaderProvider provider) {
-    return PopupMenuButton<int>(
-      onSelected: (mins) => provider.startSprint(mins),
-      offset: const Offset(0, 48),
-      color: const Color(0xFF1A1A2E),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      itemBuilder: (context) => [
-        const PopupMenuItem(value: 15, child: Text('15 Min Sprint')),
-        const PopupMenuItem(value: 25, child: Text('25 Min Sprint')),
-        const PopupMenuItem(value: 50, child: Text('50 Min Sprint (Deep Work)')),
-      ],
-      child: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.05),
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-        ),
-        child: const Icon(Icons.timer_outlined, size: 20, color: Colors.white54),
-      ),
-    );
-  }
-
-  Widget _buildReaderContent(ReaderState state) {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -228,29 +193,33 @@ class ReaderScreen extends StatelessWidget {
               style: GoogleFonts.inter(
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
-                color: Colors.white.withValues(alpha: 0.15),
+                color: Colors.white.withValues(alpha: 0.14),
                 letterSpacing: 1.5,
               ),
             ),
-            // WPM badge
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.04),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.04),
+            // WPM + Sprint launcher
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.04),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                  ),
+                  child: Text(
+                    '${state.wpm} WPM',
+                    style: GoogleFonts.inter(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white.withValues(alpha: 0.2),
+                      letterSpacing: 1.5,
+                    ),
+                  ),
                 ),
-              ),
-              child: Text(
-                '${state.wpm} WPM',
-                style: GoogleFonts.inter(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white.withValues(alpha: 0.2),
-                  letterSpacing: 1.5,
-                ),
-              ),
+                const SizedBox(width: 8),
+                _buildSprintLauncher(provider),
+              ],
             ),
           ],
         ),
@@ -258,47 +227,87 @@ class ReaderScreen extends StatelessWidget {
     );
   }
 
-  /// Bottom gradient progress bar with glow effect.
-  Widget _buildProgressBar(ReaderState state) {
+  Widget _buildSprintLauncher(ReaderProvider provider) {
+    return PopupMenuButton<int>(
+      onSelected: (mins) => provider.startSprint(mins),
+      offset: const Offset(0, 44),
+      color: const Color(0xFF1A1A2E),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+      ),
+      itemBuilder: (context) => [
+        _menuItem(15, Icons.bolt_rounded, '15 Min Sprint', 'Quick session'),
+        _menuItem(25, Icons.local_fire_department_rounded, '25 Min Sprint', 'Pomodoro ready'),
+        _menuItem(
+            50, Icons.psychology_rounded, '50 Min Deep Work', 'Full concentration block'),
+      ],
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.05),
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        ),
+        child: const Icon(Icons.timer_outlined, size: 18, color: Colors.white38),
+      ),
+    );
+  }
+
+  PopupMenuItem<int> _menuItem(int value, IconData icon, String title, String subtitle) {
+    return PopupMenuItem<int>(
+      value: value,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: const Color(0xFF6C63FF)),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(title,
+                  style: const TextStyle(
+                      color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+              Text(subtitle,
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 11)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProgressBar(state) {
     return Container(
       height: 3,
-      margin: const EdgeInsets.only(bottom: 28, left: 24, right: 24),
+      margin: const EdgeInsets.only(bottom: 24, left: 0, right: 0),
       child: LayoutBuilder(
-        builder: (context, constraints) {
-          return ClipRRect(
-            borderRadius: BorderRadius.circular(2),
-            child: Stack(
-              children: [
-                // Track
-                Container(
-                  width: constraints.maxWidth,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.04),
-                    borderRadius: BorderRadius.circular(2),
+        builder: (context, constraints) => ClipRRect(
+          child: Stack(
+            children: [
+              Container(
+                width: constraints.maxWidth,
+                color: Colors.white.withValues(alpha: 0.04),
+              ),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 130),
+                width: constraints.maxWidth * state.progress,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF6C63FF), Color(0xFF00D9FF)],
                   ),
-                ),
-                // Animated progress fill with glow
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
-                  width: constraints.maxWidth * state.progress,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(2),
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF6C63FF), Color(0xFF00D9FF)],
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF6C63FF).withValues(alpha: 0.5),
+                      blurRadius: 10,
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF6C63FF).withValues(alpha: 0.4),
-                        blurRadius: 8,
-                        spreadRadius: 0,
-                      ),
-                    ],
-                  ),
+                  ],
                 ),
-              ],
-            ),
-          );
-        },
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

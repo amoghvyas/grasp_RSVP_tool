@@ -12,13 +12,6 @@ import '../widgets/study_tools_panel.dart';
 import '../widgets/welcome_guide_panel.dart';
 import '../widgets/audio_settings_panel.dart';
 
-/// The input dashboard screen — the first screen users see.
-///
-/// Features a premium design with:
-/// - Animated gradient mesh background with floating orbs
-/// - Glassmorphic cards for all UI sections
-/// - Staggered entrance animations
-/// - Premium typography and spacing
 class InputScreen extends StatefulWidget {
   const InputScreen({super.key});
 
@@ -37,7 +30,6 @@ class _InputScreenState extends State<InputScreen> {
   @override
   void initState() {
     super.initState();
-    // Poll for installability every 2 seconds
     _installTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
       final isInstallable = (web.window as dynamic).isPWAInstallable == true;
       if (isInstallable != _isInstallable) {
@@ -65,9 +57,9 @@ class _InputScreenState extends State<InputScreen> {
   void _showInstallInstructions() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1A1A2E),
+      backgroundColor: const Color(0xFF12121E),
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (context) => Container(
         padding: const EdgeInsets.all(32),
@@ -82,42 +74,51 @@ class _InputScreenState extends State<InputScreen> {
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            const SizedBox(height: 24),
-            Text(
-              'How to Install Grasp',
-              style: GoogleFonts.inter(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
+            const SizedBox(height: 28),
+            ShaderMask(
+              shaderCallback: (b) => const LinearGradient(
+                colors: [Color(0xFF8B7FFF), Color(0xFF00D9FF)],
+              ).createShader(b),
+              child: Text(
+                'Install Grasp',
+                style: GoogleFonts.inter(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
               ),
             ),
-            const SizedBox(height: 16),
-            _buildInstructionStep(
-              '1',
-              'Tap the "Share" or "Browser Menu" button',
+            const SizedBox(height: 6),
+            Text(
+              'Add to your home screen for the full app experience',
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                color: Colors.white.withValues(alpha: 0.4),
+              ),
+              textAlign: TextAlign.center,
             ),
-            _buildInstructionStep(
-              '2',
-              'Select "Add to Home Screen"',
-            ),
-            _buildInstructionStep(
-              '3',
-              'Grasp will now appear as an app on your device!',
-            ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 28),
+            _buildInstallStep('1', Icons.ios_share_rounded, 'Tap the Share button',
+                'Look for the share icon in your browser toolbar'),
+            _buildInstallStep('2', Icons.add_box_rounded, 'Add to Home Screen',
+                'Select "Add to Home Screen" from the menu'),
+            _buildInstallStep('3', Icons.rocket_launch_rounded, 'Launch Grasp',
+                'It will appear as a native app on your device!'),
+            const SizedBox(height: 28),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () => Navigator.pop(context),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF6C63FF),
-                  foregroundColor: Colors.white,
                   padding: const EdgeInsets.all(16),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(14),
                   ),
                 ),
-                child: const Text('Got it!'),
+                child: Text('Got it!',
+                    style: GoogleFonts.inter(
+                        fontWeight: FontWeight.w700, fontSize: 15)),
               ),
             ),
           ],
@@ -126,37 +127,46 @@ class _InputScreenState extends State<InputScreen> {
     );
   }
 
-  Widget _buildInstructionStep(String number, String text) {
+  Widget _buildInstallStep(String step, IconData icon, String title, String subtitle) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 24,
-            height: 24,
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
-              color: const Color(0xFF6C63FF).withValues(alpha: 0.2),
+              color: const Color(0xFF6C63FF).withValues(alpha: 0.12),
               shape: BoxShape.circle,
+              border: Border.all(color: const Color(0xFF6C63FF).withValues(alpha: 0.25)),
             ),
             child: Center(
-              child: Text(
-                number,
-                style: const TextStyle(
-                  color: Color(0xFF6C63FF),
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              child: Icon(icon, size: 16, color: const Color(0xFF6C63FF)),
             ),
           ),
           const SizedBox(width: 16),
           Expanded(
-            child: Text(
-              text,
-              style: GoogleFonts.inter(
-                color: Colors.white.withValues(alpha: 0.7),
-                fontSize: 14,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.inter(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: GoogleFonts.inter(
+                    color: Colors.white.withValues(alpha: 0.4),
+                    fontSize: 12,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -164,42 +174,45 @@ class _InputScreenState extends State<InputScreen> {
     );
   }
 
+  // ════════════════════════════════════════════════════════════════════
+  //  BUILD
+  // ════════════════════════════════════════════════════════════════════
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<ReaderProvider>();
     final state = provider.state;
-    final screenWidth = MediaQuery.of(context).size.width;
+    final sw = MediaQuery.of(context).size.width;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: AnimatedBackground(
         child: Center(
           child: SingleChildScrollView(
-            // Tighter padding on mobile to save space
             padding: EdgeInsets.symmetric(
-              horizontal: screenWidth < 600 ? 16 : 24,
-              vertical: 48,
+              horizontal: sw < 600 ? 16 : 24,
+              vertical: 56,
             ),
             child: ConstrainedBox(
               constraints: BoxConstraints(
-                maxWidth: screenWidth > 800 ? 660 : double.infinity,
+                maxWidth: sw > 800 ? 660 : double.infinity,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // ── Hero Header ────────────────────────────────────
-                  FadeSlideIn(
-                    child: _buildHeader(),
-                  ),
+                  // ── Hero ─────────────────────────────────────────
+                  FadeSlideIn(child: _buildHero()),
                   const SizedBox(height: 48),
 
-                   // ── Welcome Guide ─────────────────────────────────
-                  FadeSlideIn(
-                    delayMs: 50,
-                    child: const WelcomeGuidePanel(),
-                  ),
+                  // ── Feature pills ── (new: shows what's inside)
+                  FadeSlideIn(delayMs: 40, child: _buildFeaturePills()),
+                  const SizedBox(height: 36),
 
-                  // ── Text Input Card ────────────────────────────────
+                  // ── Welcome guide ───────────────────────────────
+                  FadeSlideIn(delayMs: 60, child: const WelcomeGuidePanel()),
+                  const SizedBox(height: 24),
+
+                  // ── Text input ──────────────────────────────────
                   FadeSlideIn(
                     delayMs: 100,
                     child: GlassCard(
@@ -207,103 +220,91 @@ class _InputScreenState extends State<InputScreen> {
                       child: _buildTextInput(provider),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
 
-                  // ── "OR" Divider ───────────────────────────────────
+                  _buildOrDivider(40),
+                  const SizedBox(height: 16),
+
+                  // ── File upload ─────────────────────────────────
                   FadeSlideIn(
                     delayMs: 150,
-                    child: _buildDivider(),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // ── File Upload Card ───────────────────────────────
-                  FadeSlideIn(
-                    delayMs: 200,
                     child: GlassCard(
                       padding: const EdgeInsets.all(24),
                       child: _buildFileUpload(provider),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
 
-                  // ── OR Divider ───────────────────────────────────
-                  FadeSlideIn(
-                    delayMs: 220,
-                    child: _buildDivider(),
-                  ),
-                  const SizedBox(height: 20),
+                  _buildOrDivider(180),
+                  const SizedBox(height: 16),
 
-                  // ── URL Import Card ───────────────────────────────
+                  // ── URL import ──────────────────────────────────
                   FadeSlideIn(
-                    delayMs: 240,
+                    delayMs: 200,
                     child: GlassCard(
                       padding: const EdgeInsets.all(24),
                       child: _buildUrlImport(provider),
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
 
-                  // ── Audio Focus Card ───────────────────────────────
+                  // ── Study atmosphere ────────────────────────────
                   FadeSlideIn(
-                    delayMs: 250,
+                    delayMs: 230,
                     child: GlassCard(
                       padding: const EdgeInsets.all(24),
                       child: const AudioSettingsPanel(),
                     ),
                   ),
-                  
-                  // PWA Install Button (Now centered and professional)
-                  const SizedBox(height: 16),
-                  _buildInstallButton(),
 
-                  // ── Error Message ──────────────────────────────────
-                  if (_errorMessage != null)
+                  // ── Install ─────────────────────────────────────
+                  const SizedBox(height: 20),
+                  FadeSlideIn(delayMs: 240, child: _buildInstallButton()),
+
+                  // ── Error ───────────────────────────────────────
+                  if (_errorMessage != null) ...[
+                    const SizedBox(height: 16),
                     FadeSlideIn(child: _buildError()),
+                  ],
 
-                  // ── File Info Badge ────────────────────────────────
+                  // ── File badge ──────────────────────────────────
                   if (state.fileName != null) ...[
                     const SizedBox(height: 16),
                     FadeSlideIn(child: _buildFileBadge(state.fileName!)),
                   ],
 
-                  // ── Content Stats + AI Tools + Start Button ────────
+                  // ── Content loaded section ──────────────────────
                   if (state.hasContent) ...[
                     const SizedBox(height: 28),
                     FadeSlideIn(
-                      delayMs: 100,
+                      delayMs: 80,
                       child: GlassCard(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 20,
-                        ),
-                        child: _buildContentSummary(state),
+                            horizontal: 24, vertical: 20),
+                        accentBorderColor:
+                            const Color(0xFF6C63FF).withValues(alpha: 0.25),
+                        child: _buildContentStats(state),
                       ),
                     ),
 
-                    // AI Study Tools panel
+                    // AI Tools
                     if (provider.isAiReady) ...[
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 16),
                       FadeSlideIn(
-                        delayMs: 200,
-                        child: GlassCard(
-                          padding: EdgeInsets.zero,
-                          child: const StudyToolsPanel(),
-                        ),
+                        delayMs: 160,
+                        child: const StudyToolsPanel(),
                       ),
                     ],
 
                     const SizedBox(height: 28),
                     FadeSlideIn(
-                      delayMs: 300,
+                      delayMs: 280,
                       child: _buildStartButton(provider),
                     ),
                   ],
 
                   const SizedBox(height: 60),
-                  
-                  // ── Footer / Attribution ───────────────────────────
-                  _buildCompactAttribution(),
+                  _buildFooter(),
                   const SizedBox(height: 48),
                 ],
               ),
@@ -318,28 +319,32 @@ class _InputScreenState extends State<InputScreen> {
   //  UI BUILDERS
   // ════════════════════════════════════════════════════════════════════
 
-  Widget _buildHeader() {
+  Widget _buildHero() {
     return Column(
       children: [
-        // Glowing accent dot
-        Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(
-            color: const Color(0xFF6C63FF),
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF6C63FF).withValues(alpha: 0.6),
-                blurRadius: 20,
-                spreadRadius: 4,
-              ),
-            ],
+        // Pulsing glow dot
+        TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0.4, end: 1.0),
+          duration: const Duration(milliseconds: 1800),
+          builder: (_, v, __) => Container(
+            width: 10,
+            height: 10,
+            decoration: BoxDecoration(
+              color: const Color(0xFF6C63FF),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF6C63FF).withValues(alpha: v * 0.8),
+                  blurRadius: 28,
+                  spreadRadius: 4,
+                ),
+              ],
+            ),
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 28),
 
-        // App title with gradient
+        // Logo with multi-color gradient
         ShaderMask(
           shaderCallback: (bounds) => const LinearGradient(
             colors: [Color(0xFF8B7FFF), Color(0xFF00D9FF), Color(0xFFFF6B9D)],
@@ -348,36 +353,34 @@ class _InputScreenState extends State<InputScreen> {
           child: Text(
             'Grasp',
             style: GoogleFonts.inter(
-              fontSize: 56,
+              fontSize: 64,
               fontWeight: FontWeight.w800,
               color: Colors.white,
-              letterSpacing: -2,
+              letterSpacing: -3,
               height: 1.0,
             ),
             textAlign: TextAlign.center,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
 
-        // Tagline
         Text(
           'RSVP SPEED READER',
           style: GoogleFonts.inter(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: Colors.white.withValues(alpha: 0.25),
-            letterSpacing: 6,
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            color: Colors.white.withValues(alpha: 0.2),
+            letterSpacing: 7,
           ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 20),
 
-        // Subtitle
         Text(
           'Read faster. Retain more. Ace every exam.',
           style: GoogleFonts.inter(
-            fontSize: 16,
-            color: Colors.white.withValues(alpha: 0.45),
+            fontSize: 17,
+            color: Colors.white.withValues(alpha: 0.5),
             fontWeight: FontWeight.w400,
             height: 1.5,
           ),
@@ -387,31 +390,131 @@ class _InputScreenState extends State<InputScreen> {
     );
   }
 
+  Widget _buildFeaturePills() {
+    const features = [
+      (Icons.bolt_rounded, '3-5× Speed', Color(0xFF6C63FF)),
+      (Icons.auto_awesome_rounded, 'AI Summaries', Color(0xFF00D9FF)),
+      (Icons.quiz_rounded, 'Viva Q&A', Color(0xFFFF6B9D)),
+      (Icons.all_inclusive_rounded, 'Unlimited Mode', Color(0xFF8B7FFF)),
+      (Icons.psychology_rounded, 'Active Recall', Color(0xFFFFB830)),
+    ];
+
+    return SizedBox(
+      height: 36,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: features.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (_, i) {
+          final (icon, label, color) = features[i];
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: color.withValues(alpha: 0.2)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 13, color: color),
+                const SizedBox(width: 6),
+                Text(
+                  label,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildOrDivider(int delayMs) {
+    return FadeSlideIn(
+      delayMs: delayMs,
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              height: 1,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(colors: [
+                  Colors.transparent,
+                  Colors.white.withValues(alpha: 0.08),
+                ]),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.04),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
+              ),
+              child: Text(
+                'OR',
+                style: GoogleFonts.inter(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white.withValues(alpha: 0.18),
+                    letterSpacing: 3),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Container(
+              height: 1,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(colors: [
+                  Colors.white.withValues(alpha: 0.08),
+                  Colors.transparent,
+                ]),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionLabel(IconData icon, String label, Color color) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(7),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(9),
+          ),
+          child: Icon(icon, size: 15, color: color),
+        ),
+        const SizedBox(width: 10),
+        Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.white.withValues(alpha: 0.7),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildTextInput(ReaderProvider provider) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: const Color(0xFF6C63FF).withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.edit_note, size: 16, color: Color(0xFF6C63FF)),
-            ),
-            const SizedBox(width: 10),
-            Text(
-              'Paste your text',
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.white.withValues(alpha: 0.7),
-              ),
-            ),
-          ],
-        ),
+        _buildSectionLabel(Icons.edit_note_rounded, 'Paste your text', const Color(0xFF8B7FFF)),
         const SizedBox(height: 16),
         TextField(
           controller: _textController,
@@ -422,22 +525,22 @@ class _InputScreenState extends State<InputScreen> {
             height: 1.7,
           ),
           decoration: InputDecoration(
-            hintText: 'Paste any text here and start speed reading...',
+            hintText: 'Paste any text here — lecture notes, articles, chapters...',
             filled: true,
             fillColor: Colors.white.withValues(alpha: 0.04),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
+              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.07)),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
+              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.07)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
               borderSide: const BorderSide(color: Color(0xFF6C63FF), width: 1.5),
             ),
-            hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.2)),
+            hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.18)),
             contentPadding: const EdgeInsets.all(18),
           ),
           onChanged: (value) {
@@ -451,51 +554,40 @@ class _InputScreenState extends State<InputScreen> {
     );
   }
 
-  Widget _buildDivider() {
-    return Row(
+  Widget _buildFileUpload(ReaderProvider provider) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Container(
-            height: 1,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Colors.transparent,
-                  Colors.white.withValues(alpha: 0.08),
-                ],
-              ),
-            ),
+        _buildSectionLabel(Icons.upload_file_rounded, 'Upload a file (PDF, DOCX, TXT)',
+            const Color(0xFF00D9FF)),
+        const SizedBox(height: 16),
+        SizedBox(
+          height: 150,
+          child: DropzoneWidget(
+            onFileDropped: (bytes, fileName) => _handleFile(provider, bytes, fileName),
+            onError: (error) => setState(() => _errorMessage = error),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.04),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
-            ),
-            child: Text(
-              'OR',
-              style: GoogleFonts.inter(
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
-                color: Colors.white.withValues(alpha: 0.2),
-                letterSpacing: 3,
+        const SizedBox(height: 14),
+        Center(
+          child: _HoverScale(
+            child: OutlinedButton.icon(
+              onPressed: _isLoading ? null : () => _pickFile(provider),
+              icon: _isLoading
+                  ? const SizedBox(
+                      width: 13,
+                      height: 13,
+                      child: CircularProgressIndicator(strokeWidth: 2))
+                  : const Icon(Icons.folder_open_rounded, size: 15),
+              label: Text(
+                _isLoading ? 'Processing...' : 'Browse files',
+                style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600),
               ),
-            ),
-          ),
-        ),
-        Expanded(
-          child: Container(
-            height: 1,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Colors.white.withValues(alpha: 0.08),
-                  Colors.transparent,
-                ],
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.white.withValues(alpha: 0.65),
+                side: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
+                padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
           ),
@@ -504,68 +596,41 @@ class _InputScreenState extends State<InputScreen> {
     );
   }
 
-  Widget _buildFileUpload(ReaderProvider provider) {
+  Widget _buildUrlImport(ReaderProvider provider) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: const Color(0xFF00D9FF).withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.upload_file, size: 16, color: Color(0xFF00D9FF)),
-            ),
-            const SizedBox(width: 10),
-            Text(
-              'Upload a file',
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.white.withValues(alpha: 0.7),
-              ),
-            ),
-          ],
-        ),
+        _buildSectionLabel(
+            Icons.public_rounded, 'Read from URL', const Color(0xFFFF6B9D)),
         const SizedBox(height: 16),
-
-        // Drag-and-drop zone
-        SizedBox(
-          height: 160,
-          child: DropzoneWidget(
-            onFileDropped: (bytes, fileName) => _handleFile(provider, bytes, fileName),
-            onError: (error) => setState(() => _errorMessage = error),
-          ),
-        ),
-        const SizedBox(height: 16),
-
-        // Browse button
-        Center(
-          child: _HoverScale(
-            child: OutlinedButton.icon(
-              onPressed: _isLoading ? null : () => _pickFile(provider),
-              icon: _isLoading
-                  ? const SizedBox(
-                      width: 14,
-                      height: 14,
+        TextField(
+          controller: _urlController,
+          style: const TextStyle(fontSize: 13, color: Colors.white),
+          decoration: InputDecoration(
+            hintText: 'Paste any article, Wikipedia link, or research URL...',
+            hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.2)),
+            suffixIcon: _isLoading
+                ? const Padding(
+                    padding: EdgeInsets.all(12),
+                    child: SizedBox(
+                      width: 16,
+                      height: 16,
                       child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.folder_open, size: 16),
-              label: Text(
-                _isLoading ? 'Processing...' : 'Browse files',
-                style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500),
-              ),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.white.withValues(alpha: 0.7),
-                side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
+                    ),
+                  )
+                : IconButton(
+                    icon: const Icon(Icons.bolt_rounded, color: Color(0xFFFF6B9D)),
+                    onPressed: () => _handleUrlFetch(provider),
+                  ),
+          ),
+          onSubmitted: (_) => _handleUrlFetch(provider),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Powers through Wikipedia, blogs, Medium, and research articles.',
+          style: GoogleFonts.inter(
+            fontSize: 11,
+            color: Colors.white.withValues(alpha: 0.25),
           ),
         ),
       ],
@@ -574,7 +639,7 @@ class _InputScreenState extends State<InputScreen> {
 
   Widget _buildError() {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: const Color(0xFFFF4757).withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(14),
@@ -582,20 +647,15 @@ class _InputScreenState extends State<InputScreen> {
       ),
       child: Row(
         children: [
-          const Icon(Icons.error_outline, color: Color(0xFFFF4757), size: 16),
+          const Icon(Icons.error_outline_rounded, color: Color(0xFFFF4757), size: 16),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(
-              _errorMessage!,
-              style: GoogleFonts.inter(
-                color: const Color(0xFFFF4757),
-                fontSize: 12,
-              ),
-            ),
+            child: Text(_errorMessage!,
+                style: GoogleFonts.inter(color: const Color(0xFFFF4757), fontSize: 12)),
           ),
           IconButton(
             onPressed: () => setState(() => _errorMessage = null),
-            icon: const Icon(Icons.close, size: 14),
+            icon: const Icon(Icons.close_rounded, size: 14),
             color: Colors.white24,
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
@@ -611,12 +671,12 @@ class _InputScreenState extends State<InputScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFF6C63FF).withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF6C63FF).withValues(alpha: 0.15)),
+        border: Border.all(color: const Color(0xFF6C63FF).withValues(alpha: 0.2)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.description, size: 14, color: Color(0xFF6C63FF)),
+          const Icon(Icons.description_rounded, size: 14, color: Color(0xFF6C63FF)),
           const SizedBox(width: 8),
           Flexible(
             child: Text(
@@ -634,48 +694,50 @@ class _InputScreenState extends State<InputScreen> {
     );
   }
 
-  Widget _buildContentSummary(state) {
+  Widget _buildContentStats(state) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        _buildStat(Icons.format_list_numbered, '${state.totalWords}', 'words'),
-        Container(
-          width: 1,
-          height: 36,
-          color: Colors.white.withValues(alpha: 0.05),
-        ),
-        _buildStat(Icons.timer, state.estimatedTimeFormatted, 'est. time'),
-        Container(
-          width: 1,
-          height: 36,
-          color: Colors.white.withValues(alpha: 0.05),
-        ),
-        _buildStat(Icons.speed, '${state.wpm}', 'WPM'),
+        _buildStat(Icons.format_list_numbered_rounded, '${state.totalWords}', 'words'),
+        _buildStatDivider(),
+        _buildStat(Icons.timer_rounded, state.estimatedTimeFormatted, 'est. time'),
+        _buildStatDivider(),
+        _buildStat(Icons.speed_rounded, '${state.wpm}', 'WPM'),
       ],
     );
+  }
+
+  Widget _buildStatDivider() {
+    return Container(width: 1, height: 36, color: Colors.white.withValues(alpha: 0.06));
   }
 
   Widget _buildStat(IconData icon, String value, String label) {
     return Column(
       children: [
-        Icon(icon, size: 14, color: const Color(0xFF6C63FF).withValues(alpha: 0.7)),
+        Icon(icon, size: 14, color: const Color(0xFF6C63FF).withValues(alpha: 0.8)),
         const SizedBox(height: 8),
-        Text(
-          value,
-          style: GoogleFonts.inter(
-            fontSize: 22,
-            fontWeight: FontWeight.w700,
-            color: Colors.white.withValues(alpha: 0.9),
+        ShaderMask(
+          shaderCallback: (b) => const LinearGradient(
+            colors: [Color(0xFF8B7FFF), Color(0xFF00D9FF)],
+          ).createShader(b),
+          child: Text(
+            value,
+            style: GoogleFonts.inter(
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+              letterSpacing: -0.5,
+            ),
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 3),
         Text(
           label,
           style: GoogleFonts.inter(
             fontSize: 10,
             color: Colors.white.withValues(alpha: 0.25),
-            letterSpacing: 1,
-            fontWeight: FontWeight.w500,
+            letterSpacing: 1.5,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ],
@@ -685,18 +747,19 @@ class _InputScreenState extends State<InputScreen> {
   Widget _buildStartButton(ReaderProvider provider) {
     return _HoverScale(
       child: Container(
-        height: 58,
+        height: 62,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
           gradient: const LinearGradient(
-            colors: [Color(0xFF6C63FF), Color(0xFF8B7FFF)],
+            colors: [Color(0xFF6C63FF), Color(0xFF8B7FFF), Color(0xFF00D9FF)],
+            stops: [0.0, 0.5, 1.0],
           ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF6C63FF).withValues(alpha: 0.35),
-              blurRadius: 24,
-              offset: const Offset(0, 8),
-              spreadRadius: -4,
+              color: const Color(0xFF6C63FF).withValues(alpha: 0.45),
+              blurRadius: 30,
+              offset: const Offset(0, 10),
+              spreadRadius: -6,
             ),
           ],
         ),
@@ -705,21 +768,19 @@ class _InputScreenState extends State<InputScreen> {
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.transparent,
             shadowColor: Colors.transparent,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
             padding: EdgeInsets.zero,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.play_arrow_rounded, size: 26),
+              const Icon(Icons.play_arrow_rounded, size: 28),
               const SizedBox(width: 10),
               Text(
                 'Start Reading',
                 style: GoogleFonts.inter(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
                   letterSpacing: 0.2,
                 ),
               ),
@@ -727,6 +788,88 @@ class _InputScreenState extends State<InputScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildInstallButton() {
+    return Center(
+      child: _HoverScale(
+        child: GestureDetector(
+          onTap: _triggerInstall,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.04),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.09)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.add_to_home_screen_rounded,
+                    color: Color(0xFF00D9FF), size: 16),
+                const SizedBox(width: 10),
+                Text(
+                  'Install Grasp as App',
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white.withValues(alpha: 0.65),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFooter() {
+    return Column(
+      children: [
+        Container(
+          height: 1,
+          margin: const EdgeInsets.only(bottom: 20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Colors.transparent,
+                Colors.white.withValues(alpha: 0.06),
+                Colors.transparent,
+              ],
+            ),
+          ),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 6,
+              height: 6,
+              decoration: BoxDecoration(
+                color: const Color(0xFF6C63FF),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF6C63FF).withValues(alpha: 0.6),
+                    blurRadius: 8,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              'Crafted with ❤️ by Amogh · Powered by Antigravity',
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                color: Colors.white.withValues(alpha: 0.22),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -740,13 +883,11 @@ class _InputScreenState extends State<InputScreen> {
         _isLoading = true;
         _errorMessage = null;
       });
-
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['txt', 'docx', 'pdf'],
         withData: true,
       );
-
       if (result != null && result.files.isNotEmpty) {
         final file = result.files.first;
         if (file.bytes != null) {
@@ -777,60 +918,13 @@ class _InputScreenState extends State<InputScreen> {
     }
   }
 
-  Widget _buildUrlImport(ReaderProvider provider) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: const Color(0xFF6C63FF).withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.link, size: 16, color: Color(0xFF6C63FF)),
-            ),
-            const SizedBox(width: 10),
-            Text(
-              'Read from URL',
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.white.withValues(alpha: 0.7),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          controller: _urlController,
-          style: const TextStyle(fontSize: 13, color: Colors.white),
-          decoration: InputDecoration(
-            hintText: 'Paste any article or research link...',
-            hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.2)),
-            suffixIcon: IconButton(
-              icon: _isLoading 
-                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                : const Icon(Icons.bolt, color: Color(0xFF6C63FF)),
-              onPressed: () => _handleUrlFetch(provider),
-            ),
-          ),
-          onSubmitted: (_) => _handleUrlFetch(provider),
-        ),
-      ],
-    );
-  }
-
   Future<void> _handleUrlFetch(ReaderProvider provider) async {
     final url = _urlController.text.trim();
     if (url.isEmpty) return;
-    
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
-
     try {
       await provider.loadFromUrl(url);
       _urlController.clear();
@@ -841,60 +935,9 @@ class _InputScreenState extends State<InputScreen> {
       setState(() => _isLoading = false);
     }
   }
-
-  Widget _buildCompactAttribution() {
-    return Center(
-      child: Text(
-        'Developed with ❤️ by Amogh using Antigravity',
-        style: GoogleFonts.inter(
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-          color: Colors.white.withValues(alpha: 0.25),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInstallButton() {
-    return Center(
-      child: _HoverScale(
-        child: InkWell(
-          onTap: _triggerInstall,
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white10),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.add_to_home_screen_rounded,
-                  color: Color(0xFF00D9FF),
-                  size: 16,
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  'Install Grasp WebApp',
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white.withValues(alpha: 0.7),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }
 
-/// A widget that subtly scales up on hover for micro-interaction feedback.
+// ── Hover scale micro-interaction ────────────────────────────────────
 class _HoverScale extends StatefulWidget {
   final Widget child;
   const _HoverScale({required this.child});
@@ -914,7 +957,7 @@ class _HoverScaleState extends State<_HoverScale> {
       child: AnimatedScale(
         scale: _hovering ? 1.02 : 1.0,
         duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOut,
+        curve: Curves.easeOutCubic,
         child: widget.child,
       ),
     );

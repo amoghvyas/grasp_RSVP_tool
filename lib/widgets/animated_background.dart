@@ -4,14 +4,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 /// Animated gradient mesh background with floating orbs.
-///
-/// Creates a premium, living background with slowly morphing gradient
-/// orbs that drift across the screen. Used as the base layer behind
-/// all glassmorphic content.
 class AnimatedBackground extends StatefulWidget {
-  /// The child widget rendered on top of the background.
   final Widget child;
-
   const AnimatedBackground({super.key, required this.child});
 
   @override
@@ -20,68 +14,45 @@ class AnimatedBackground extends StatefulWidget {
 
 class _AnimatedBackgroundState extends State<AnimatedBackground>
     with TickerProviderStateMixin {
-  late AnimationController _controller1;
-  late AnimationController _controller2;
-  late AnimationController _controller3;
+  late AnimationController _c1;
+  late AnimationController _c2;
+  late AnimationController _c3;
+  late AnimationController _c4;
 
   @override
   void initState() {
     super.initState();
-
-    // Three controllers at different speeds for organic movement
-    _controller1 = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 12),
-    )..repeat(reverse: true);
-
-    _controller2 = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 18),
-    )..repeat(reverse: true);
-
-    _controller3 = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 15),
-    )..repeat(reverse: true);
+    _c1 = AnimationController(vsync: this, duration: const Duration(seconds: 14))..repeat(reverse: true);
+    _c2 = AnimationController(vsync: this, duration: const Duration(seconds: 19))..repeat(reverse: true);
+    _c3 = AnimationController(vsync: this, duration: const Duration(seconds: 16))..repeat(reverse: true);
+    _c4 = AnimationController(vsync: this, duration: const Duration(seconds: 22))..repeat(reverse: true);
   }
 
   @override
   void dispose() {
-    _controller1.dispose();
-    _controller2.dispose();
-    _controller3.dispose();
+    _c1.dispose(); _c2.dispose(); _c3.dispose(); _c4.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color(0xFF05050A), // Near-black base
+      color: const Color(0xFF04040D),
       child: Stack(
         children: [
-          // ── Animated gradient orbs ──────────────────────────────
           AnimatedBuilder(
-            animation: Listenable.merge([_controller1, _controller2, _controller3]),
-            builder: (context, _) {
-              return CustomPaint(
-                painter: _OrbPainter(
-                  progress1: _controller1.value,
-                  progress2: _controller2.value,
-                  progress3: _controller3.value,
-                ),
-                size: Size.infinite,
-              );
-            },
-          ),
-
-          // ── Noise/grain overlay for premium feel ────────────────
-          Positioned.fill(
-            child: Container(
-              color: Colors.black.withValues(alpha: 0.15),
+            animation: Listenable.merge([_c1, _c2, _c3, _c4]),
+            builder: (_, __) => CustomPaint(
+              painter: _OrbPainter(
+                p1: _c1.value, p2: _c2.value, p3: _c3.value, p4: _c4.value,
+              ),
+              size: Size.infinite,
             ),
           ),
-
-          // ── Content ────────────────────────────────────────────
+          // Noise overlay
+          Positioned.fill(
+            child: Container(color: Colors.black.withValues(alpha: 0.12)),
+          ),
           Positioned.fill(child: widget.child),
         ],
       ),
@@ -89,76 +60,47 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
   }
 }
 
-/// Custom painter that renders soft, blurred gradient orbs
-/// at positions determined by animation progress values.
 class _OrbPainter extends CustomPainter {
-  final double progress1;
-  final double progress2;
-  final double progress3;
-
-  _OrbPainter({
-    required this.progress1,
-    required this.progress2,
-    required this.progress3,
-  });
+  final double p1, p2, p3, p4;
+  const _OrbPainter({required this.p1, required this.p2, required this.p3, required this.p4});
 
   @override
   void paint(Canvas canvas, Size size) {
-    // ── Orb 1: Purple (primary accent) ───────────────────────
-    _drawOrb(
-      canvas,
-      Offset(
-        size.width * (0.2 + 0.3 * sin(progress1 * pi)),
-        size.height * (0.15 + 0.25 * cos(progress1 * pi)),
-      ),
-      size.width * 0.5,
-      const Color(0xFF6C63FF).withValues(alpha: 0.12),
-    );
+    _drawOrb(canvas,
+      Offset(size.width * (0.15 + 0.3 * sin(p1 * pi)), size.height * (0.1 + 0.28 * cos(p1 * pi))),
+      size.width * 0.55, const Color(0xFF6C63FF), 0.11);
 
-    // ── Orb 2: Cyan (secondary accent) ──────────────────────
-    _drawOrb(
-      canvas,
-      Offset(
-        size.width * (0.7 + 0.2 * cos(progress2 * pi)),
-        size.height * (0.6 + 0.3 * sin(progress2 * pi)),
-      ),
-      size.width * 0.45,
-      const Color(0xFF00D9FF).withValues(alpha: 0.08),
-    );
+    _drawOrb(canvas,
+      Offset(size.width * (0.72 + 0.18 * cos(p2 * pi)), size.height * (0.62 + 0.28 * sin(p2 * pi))),
+      size.width * 0.48, const Color(0xFF00D9FF), 0.07);
 
-    // ── Orb 3: Magenta (warm accent) ────────────────────────
-    _drawOrb(
-      canvas,
-      Offset(
-        size.width * (0.5 + 0.25 * sin(progress3 * pi * 1.5)),
-        size.height * (0.8 + 0.15 * cos(progress3 * pi)),
-      ),
-      size.width * 0.35,
-      const Color(0xFFFF6B9D).withValues(alpha: 0.06),
-    );
+    _drawOrb(canvas,
+      Offset(size.width * (0.48 + 0.22 * sin(p3 * pi * 1.4)), size.height * (0.82 + 0.12 * cos(p3 * pi))),
+      size.width * 0.38, const Color(0xFFFF6B9D), 0.06);
+
+    _drawOrb(canvas,
+      Offset(size.width * (0.9 + 0.08 * cos(p4 * pi)), size.height * (0.22 + 0.16 * sin(p4 * pi))),
+      size.width * 0.3, const Color(0xFF8B7FFF), 0.07);
   }
 
-  void _drawOrb(Canvas canvas, Offset center, double radius, Color color) {
+  void _drawOrb(Canvas canvas, Offset center, double radius, Color color, double alpha) {
     final paint = Paint()
       ..shader = RadialGradient(
-        colors: [color, color.withValues(alpha: 0)],
-        stops: const [0.0, 1.0],
-      ).createShader(
-        Rect.fromCircle(center: center, radius: radius),
-      )
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 60);
-
+        colors: [color.withValues(alpha: alpha), color.withValues(alpha: 0)],
+      ).createShader(Rect.fromCircle(center: center, radius: radius))
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 70);
     canvas.drawCircle(center, radius, paint);
   }
 
   @override
-  bool shouldRepaint(_OrbPainter oldDelegate) => true;
+  bool shouldRepaint(_OrbPainter o) => true;
 }
 
-/// A glassmorphic container with frosted glass effect.
-///
-/// Wraps content in a semi-transparent, blurred container with
-/// a subtle border — creating the premium "frosted glass" appearance.
+// ═══════════════════════════════════════════════════════════════════
+//  GLASS CARD
+// ═══════════════════════════════════════════════════════════════════
+
+/// Premium glassmorphic container.
 class GlassCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
@@ -166,6 +108,7 @@ class GlassCard extends StatelessWidget {
   final double borderRadius;
   final double blur;
   final double opacity;
+  final Color? accentBorderColor;
 
   const GlassCard({
     super.key,
@@ -173,8 +116,9 @@ class GlassCard extends StatelessWidget {
     this.padding,
     this.margin,
     this.borderRadius = 20,
-    this.blur = 12,
-    this.opacity = 0.08,
+    this.blur = 14,
+    this.opacity = 0.07,
+    this.accentBorderColor,
   });
 
   @override
@@ -188,17 +132,24 @@ class GlassCard extends StatelessWidget {
           child: Container(
             padding: padding,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: opacity),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white.withValues(alpha: opacity + 0.02),
+                  Colors.white.withValues(alpha: opacity - 0.02),
+                ],
+              ),
               borderRadius: BorderRadius.circular(borderRadius),
               border: Border.all(
-                color: Colors.white.withValues(alpha: 0.1),
-                width: 1,
+                color: accentBorderColor ?? Colors.white.withValues(alpha: 0.1),
+                width: accentBorderColor != null ? 1.5 : 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.2),
-                  blurRadius: 20,
-                  spreadRadius: -5,
+                  color: Colors.black.withValues(alpha: 0.25),
+                  blurRadius: 24,
+                  spreadRadius: -4,
                 ),
               ],
             ),
@@ -210,7 +161,11 @@ class GlassCard extends StatelessWidget {
   }
 }
 
-/// Animated entrance wrapper that fades + slides content in from below.
+// ═══════════════════════════════════════════════════════════════════
+//  FADE-SLIDE ENTRANCE
+// ═══════════════════════════════════════════════════════════════════
+
+/// Animated entrance: fades + slides in from below.
 class FadeSlideIn extends StatelessWidget {
   final Widget child;
   final int delayMs;
@@ -220,21 +175,20 @@ class FadeSlideIn extends StatelessWidget {
     super.key,
     required this.child,
     this.delayMs = 0,
-    this.offsetY = 30,
+    this.offsetY = 24,
   });
 
   @override
   Widget build(BuildContext context) {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
-      duration: Duration(milliseconds: 600 + delayMs),
+      duration: Duration(milliseconds: 700 + delayMs),
       curve: Curves.easeOutCubic,
       builder: (context, value, child) {
-        // Apply delay by clamping the effective progress
         final delayed = delayMs > 0
-            ? ((value - (delayMs / (600 + delayMs))) / (1 - (delayMs / (600 + delayMs)))).clamp(0.0, 1.0)
+            ? ((value - (delayMs / (700 + delayMs))) / (1 - (delayMs / (700 + delayMs))))
+                .clamp(0.0, 1.0)
             : value;
-
         return Opacity(
           opacity: delayed,
           child: Transform.translate(
