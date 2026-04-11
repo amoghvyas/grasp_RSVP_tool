@@ -1,7 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
-
+import '../models/reader_state.dart';
 import '../providers/reader_provider.dart';
 import '../widgets/active_recall_overlay.dart';
 import '../widgets/animated_background.dart';
@@ -142,7 +139,7 @@ class ReaderScreen extends StatelessWidget {
   }
 
   /// Top bar with word counter and WPM badge.
-  Widget _buildTopBar(ReaderProvider provider, state) {
+  Widget _buildTopBar(ReaderProvider provider, ReaderState state) {
     if (!state.isSprintActive) {
       return Positioned(
         top: 24,
@@ -214,7 +211,7 @@ class ReaderScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildReaderContent(state) {
+  Widget _buildReaderContent(ReaderState state) {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -258,7 +255,7 @@ class ReaderScreen extends StatelessWidget {
   }
 
   /// Bottom gradient progress bar with glow effect.
-  Widget _buildProgressBar(state) {
+  Widget _buildProgressBar(ReaderState state) {
     return Container(
       height: 3,
       margin: const EdgeInsets.only(bottom: 28, left: 24, right: 24),
