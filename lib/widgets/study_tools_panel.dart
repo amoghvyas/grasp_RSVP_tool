@@ -13,7 +13,7 @@ import '../providers/reader_provider.dart';
 ///  - Summary (exam-optimized, supports English/Hinglish)
 ///  - Viva & Exam Q&A (with Anki CSV export)
 ///
-/// Also features the AI Engine Switcher (Gemini ↔ OpenRouter Infinite Mode).
+/// Also features the AI Engine Switcher (Gemini ↔ Groq).
 class StudyToolsPanel extends StatefulWidget {
   const StudyToolsPanel({super.key});
 
@@ -126,7 +126,7 @@ class _StudyToolsPanelState extends State<StudyToolsPanel>
                   ),
                 ),
                 Text(
-                  'Powered by Gemini · Unlimited via OpenRouter',
+                  'Powered by Gemini · Fast inference via Groq LPU',
                   style: GoogleFonts.inter(
                     fontSize: 11,
                     color: Colors.white.withValues(alpha: 0.35),
@@ -191,12 +191,12 @@ class _StudyToolsPanelState extends State<StudyToolsPanel>
               onTap: () => provider.setAiProvider(AiProvider.gemini),
             ),
             _buildEngineOption(
-              label: 'OpenRouter',
-              subtitle: 'Infinite · No limits',
-              icon: Icons.all_inclusive,
-              accentColor: const Color(0xFFFF6B9D),
-              isSelected: state.aiProvider == AiProvider.openRouter,
-              onTap: () => provider.setAiProvider(AiProvider.openRouter),
+              label: 'Groq API',
+              subtitle: 'Lightning Fast LPU',
+              icon: Icons.bolt_rounded,
+              accentColor: const Color(0xFFFFB830),
+              isSelected: state.aiProvider == AiProvider.groq,
+              onTap: () => provider.setAiProvider(AiProvider.groq),
             ),
           ],
         ),

@@ -1,6 +1,6 @@
 import '../services/focus_service.dart';
 
-enum AiProvider { gemini, openRouter }
+enum AiProvider { gemini, groq }
 
 /// Simple DTO for Active Recall questions.
 class RecallQuestion {

@@ -2,18 +2,15 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/reader_state.dart';
 
-/// Service to access high-limit free AI models via OpenRouter.
-class OpenRouterService {
+/// Service to access ultra-fast Groq LPU API models.
+class GroqService {
   String? _apiKey;
   bool _isInitialized = false;
 
   bool get isInitialized => _isInitialized;
 
-  /// Default free models to rotate through
-  final List<String> _freeModels = [
-    'google/gemma-2-9b-it:free',
-    'meta-llama/llama-3.1-8b-instruct:free',
-  ];
+  /// Default model optimized for lightning-fast latency
+  final String _model = 'llama3-8b-8192';
 
   void initialize(String apiKey) {
     if (apiKey.isEmpty) return;
@@ -22,45 +19,38 @@ class OpenRouterService {
   }
 
   Future<String> _request(String prompt, {String? systemPrompt}) async {
-    if (!_isInitialized) throw Exception('OpenRouter not initialized');
+    if (!_isInitialized) throw Exception('Groq API not initialized');
 
-    List<String> errors = [];
-    for (var model in _freeModels) {
-      try {
-        final response = await http.post(
-          Uri.parse('https://openrouter.ai/api/v1/chat/completions'),
-          headers: {
-            'Authorization': 'Bearer $_apiKey',
-            'Content-Type': 'application/json',
-            'HTTP-Referer': 'https://grasptool.app',
-          },
-          body: jsonEncode({
-            'model': model,
-            'messages': [
-              if (systemPrompt != null) {'role': 'system', 'content': systemPrompt},
-              {'role': 'user', 'content': prompt},
-            ],
-            'temperature': 0.7,
-          }),
-        );
+    try {
+      final response = await http.post(
+        Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
+        headers: {
+          'Authorization': 'Bearer $_apiKey',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'model': _model,
+          'messages': [
+            if (systemPrompt != null) {'role': 'system', 'content': systemPrompt},
+            {'role': 'user', 'content': prompt},
+          ],
+          'temperature': 0.7,
+        }),
+      );
 
-        if (response.statusCode == 200) {
-          final data = jsonDecode(response.body);
-          if (data['choices'] != null && data['choices'].isNotEmpty) {
-            return data['choices'][0]['message']['content'];
-          } else {
-             errors.add('$model: Empty choices (Payload: ${response.body})');
-          }
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['choices'] != null && data['choices'].isNotEmpty) {
+          return data['choices'][0]['message']['content'];
         } else {
-          errors.add('$model failed with status ${response.statusCode} (Payload: ${response.body})');
+           throw Exception('Empty choices returned from Groq (Payload: ${response.body})');
         }
-      } catch (e) {
-        // Try next model if one fails
-        errors.add('$model exception: $e');
-        continue;
+      } else {
+        throw Exception('Groq failed with status ${response.statusCode} (Payload: ${response.body})');
       }
+    } catch (e) {
+      throw Exception('Groq error: $e');
     }
-    throw Exception('All Infinite Mode models are currently busy or failed. Details: \n${errors.join('\n')}');
   }
 
   Future<String> generateSummary(String text, {bool hinglish = false}) async {

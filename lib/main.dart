@@ -15,10 +15,10 @@ const _geminiApiKey = String.fromEnvironment(
   defaultValue: '', // Using empty string to enforce valid fallback checks
 );
 
-/// OpenRouter API key injected at build time via:
-///   flutter run --dart-define=OPENROUTER_API_KEY=your_key_here
-const _openRouterApiKey = String.fromEnvironment(
-  'OPENROUTER_API_KEY',
+/// Groq API key injected at build time via:
+///   flutter run --dart-define=GROQ_API_KEY=your_key_here
+const _groqApiKey = String.fromEnvironment(
+  'GROQ_API_KEY',
   defaultValue: '',
 );
 
@@ -35,7 +35,7 @@ class RSVPReaderApp extends StatelessWidget {
       create: (_) {
         final provider = ReaderProvider();
         // Initialize AI services with their respective keys
-        provider.initializeAiKeys(_geminiApiKey, _openRouterApiKey);
+        provider.initializeAiKeys(_geminiApiKey, _groqApiKey);
         return provider;
       },
       child: MaterialApp(

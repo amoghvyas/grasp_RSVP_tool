@@ -9,7 +9,7 @@ import '../models/reader_state.dart';
 import '../services/file_parser_service.dart';
 import '../services/focus_service.dart';
 import '../services/gemini_service.dart';
-import '../services/open_router_service.dart';
+import '../services/groq_service.dart';
 import '../services/sanitizer_service.dart';
 import '../services/tts_service.dart';
 import '../services/url_import_service.dart';
@@ -27,7 +27,7 @@ class ReaderProvider extends ChangeNotifier {
   final GeminiService _geminiService = GeminiService();
   final FocusService _focusService = FocusService();
   final TtsService _ttsService = TtsService();
-  final OpenRouterService _openRouterService = OpenRouterService();
+  final GroqService _groqService = GroqService();
   final UrlImportService _urlService = UrlImportService();
 
   Timer? _timer;
@@ -79,7 +79,7 @@ class ReaderProvider extends ChangeNotifier {
     if (_state.aiProvider == AiProvider.gemini) {
       _geminiService.initialize(key);
     } else {
-      _openRouterService.initialize(key);
+      _groqService.initialize(key);
     }
     // Recheck initialization status
     notifyListeners();
@@ -95,9 +95,9 @@ class ReaderProvider extends ChangeNotifier {
         summary = await _geminiService.generateSummary(_state.rawText, hinglish: hinglish);
       } else {
         try {
-          summary = await _openRouterService.generateSummary(_state.rawText, hinglish: hinglish);
+          summary = await _groqService.generateSummary(_state.rawText, hinglish: hinglish);
         } catch (e) {
-          // Fallback to Gemini if OpenRouter experiences network/CORS issues or limits
+          // Fallback to Gemini if Groq experiences network/CORS issues or limits
           summary = await _geminiService.generateSummary(_state.rawText, hinglish: hinglish);
         }
       }
@@ -121,7 +121,7 @@ class ReaderProvider extends ChangeNotifier {
         questions = await _geminiService.generateVivaQuestions(_state.rawText, hinglish: hinglish);
       } else {
         try {
-          questions = await _openRouterService.generateVivaQuestions(_state.rawText, hinglish: hinglish);
+          questions = await _groqService.generateVivaQuestions(_state.rawText, hinglish: hinglish);
         } catch (e) {
           questions = await _geminiService.generateVivaQuestions(_state.rawText, hinglish: hinglish);
         }
@@ -170,7 +170,7 @@ class ReaderProvider extends ChangeNotifier {
         recall = await _geminiService.generateRecallQuestion(contextText);
       } else {
         try {
-          recall = await _openRouterService.generateRecallQuestion(contextText);
+          recall = await _groqService.generateRecallQuestion(contextText);
         } catch (e) {
           recall = await _geminiService.generateRecallQuestion(contextText);
         }
@@ -351,13 +351,13 @@ class ReaderProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void initializeAiKeys(String geminiKey, String openRouterKey) {
+  void initializeAiKeys(String geminiKey, String groqKey) {
     if (geminiKey.isNotEmpty) _geminiService.initialize(geminiKey);
-    if (openRouterKey.isNotEmpty) _openRouterService.initialize(openRouterKey);
+    if (groqKey.isNotEmpty) _groqService.initialize(groqKey);
     notifyListeners();
   }
 
-  bool get isAiReady => _geminiService.isInitialized || _openRouterService.isInitialized;
+  bool get isAiReady => _geminiService.isInitialized || _groqService.isInitialized;
 
   // ── PERSISTENCE ───────────────────────────────────────────────
 
