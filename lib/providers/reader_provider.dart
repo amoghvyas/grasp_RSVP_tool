@@ -307,6 +307,15 @@ class ReaderProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void speakCustomText(String text) {
+    if (text.isEmpty) return;
+    _ttsService.speakFullText(text);
+  }
+
+  void stopCustomText() {
+    _ttsService.stop();
+  }
+
   void startSprint(int mins) {
     _sprintTimer?.cancel();
     _state = _state.copyWith(

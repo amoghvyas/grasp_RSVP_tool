@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../models/reader_state.dart';
 import '../providers/reader_provider.dart';
+import '../screens/reader_screen.dart';
 
 /// A premium, tabbed AI study toolbox panel.
 ///
@@ -445,17 +446,42 @@ class _StudyToolsPanelState extends State<StudyToolsPanel>
                   ),
                 ),
                 const Spacer(),
+                // Actions
+                _ActionChip(
+                  icon: Icons.headphones_rounded,
+                  label: 'Listen',
+                  color: const Color(0xFF00D9FF),
+                  onTap: () => provider.speakCustomText(content),
+                ),
+                const SizedBox(width: 8),
+                _ActionChip(
+                  icon: Icons.menu_book_rounded,
+                  label: 'Read',
+                  color: const Color(0xFF6C63FF),
+                  onTap: () async {
+                    // Start reading the AI generated text
+                    await provider.loadFromText(content, fileName: 'Generated $type');
+                    if (!mounted) return;
+                      Navigator.push(
+                        context,
+                        PageRouteBuilder(
+                          pageBuilder: (_, __, ___) => const ReaderScreen(),
+                          transitionsBuilder: (_, a, __, c) => FadeTransition(opacity: a, child: c),
+                        ),
+                      );
+                  },
+                ),
                 // Export button (only in Q&A tab)
-                if (type == 'Q&A')
-                  Padding(
-                    padding: const EdgeInsets.only(right: 4),
-                    child: _ActionChip(
-                      icon: Icons.download_rounded,
-                      label: 'Anki CSV',
-                      color: const Color(0xFF00D9FF),
-                      onTap: () => provider.exportToFlashcards(),
-                    ),
+                if (type == 'Q&A') ...[
+                  const SizedBox(width: 8),
+                  _ActionChip(
+                    icon: Icons.download_rounded,
+                    label: 'Anki CSV',
+                    color: const Color(0xFF00D9FF),
+                    onTap: () => provider.exportToFlashcards(),
                   ),
+                ],
+                const SizedBox(width: 8),
                 // Copy button
                 _ActionChip(
                   icon: Icons.copy_rounded,
