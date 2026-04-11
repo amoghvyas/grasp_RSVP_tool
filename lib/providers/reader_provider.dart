@@ -90,12 +90,23 @@ class ReaderProvider extends ChangeNotifier {
     _state = _state.copyWith(isSummaryLoading: true, clearAiError: true);
     notifyListeners();
     try {
-      final summary = _state.aiProvider == AiProvider.gemini
-          ? await _geminiService.generateSummary(_state.rawText, hinglish: hinglish)
-          : await _openRouterService.generateSummary(_state.rawText, hinglish: hinglish);
+      String summary;
+      if (_state.aiProvider == AiProvider.gemini) {
+        summary = await _geminiService.generateSummary(_state.rawText, hinglish: hinglish);
+      } else {
+        try {
+          summary = await _openRouterService.generateSummary(_state.rawText, hinglish: hinglish);
+        } catch (e) {
+          // Fallback to Gemini if OpenRouter experiences network/CORS issues or limits
+          summary = await _geminiService.generateSummary(_state.rawText, hinglish: hinglish);
+        }
+      }
       _state = _state.copyWith(summary: summary, isSummaryLoading: false);
     } catch (e) {
-      _state = _state.copyWith(aiError: e.toString(), isSummaryLoading: false);
+      _state = _state.copyWith(
+        isSummaryLoading: false,
+        aiError: e.toString().replaceAll('Exception: ', ''),
+      );
     }
     notifyListeners();
   }
@@ -105,12 +116,22 @@ class ReaderProvider extends ChangeNotifier {
     _state = _state.copyWith(isVivaLoading: true, clearAiError: true);
     notifyListeners();
     try {
-      final questions = _state.aiProvider == AiProvider.gemini
-          ? await _geminiService.generateVivaQuestions(_state.rawText, hinglish: hinglish)
-          : await _openRouterService.generateVivaQuestions(_state.rawText, hinglish: hinglish);
+      String questions;
+      if (_state.aiProvider == AiProvider.gemini) {
+        questions = await _geminiService.generateVivaQuestions(_state.rawText, hinglish: hinglish);
+      } else {
+        try {
+          questions = await _openRouterService.generateVivaQuestions(_state.rawText, hinglish: hinglish);
+        } catch (e) {
+          questions = await _geminiService.generateVivaQuestions(_state.rawText, hinglish: hinglish);
+        }
+      }
       _state = _state.copyWith(vivaQuestions: questions, isVivaLoading: false);
     } catch (e) {
-      _state = _state.copyWith(aiError: e.toString(), isVivaLoading: false);
+      _state = _state.copyWith(
+        isVivaLoading: false,
+        aiError: e.toString().replaceAll('Exception: ', ''),
+      );
     }
     notifyListeners();
   }
@@ -143,16 +164,25 @@ class ReaderProvider extends ChangeNotifier {
     try {
       final start = (_state.currentIndex - 300).clamp(0, _state.totalWords);
       final contextText = _state.words.sublist(start, _state.currentIndex).join(' ');
-      final RecallQuestion recall = _state.aiProvider == AiProvider.gemini
-          ? await _geminiService.generateRecallQuestion(contextText)
-          : await _openRouterService.generateRecallQuestion(contextText);
+      
+      RecallQuestion recall;
+      if (_state.aiProvider == AiProvider.gemini) {
+        recall = await _geminiService.generateRecallQuestion(contextText);
+      } else {
+        try {
+          recall = await _openRouterService.generateRecallQuestion(contextText);
+        } catch (e) {
+          recall = await _geminiService.generateRecallQuestion(contextText);
+        }
+      }
+      
       _state = _state.copyWith(
         recallQuestion: recall.question,
         recallOptions: recall.options,
         recallCorrectIndex: recall.correctIndex,
       );
     } catch (e) {
-      _state = _state.copyWith(isRecallActive: false);
+      // Fallback handled in services
     }
     notifyListeners();
   }

@@ -33,8 +33,6 @@ class OpenRouterService {
             'Authorization': 'Bearer $_apiKey',
             'Content-Type': 'application/json',
             'HTTP-Referer': 'https://grasptool.app',
-            'X-Title': 'Grasp RSVP Tool',
-            'OR-Logging': 'false', // Privacy: No logging of prompt/response
           },
           body: jsonEncode({
             'model': model,
