@@ -31,6 +31,12 @@ class ReaderProvider extends ChangeNotifier {
 
   ReaderProvider() {
     _loadFromPrefs();
+    
+    // Scholarly Auto-Initialization: Pull LPU credentials from build environment
+    const buildKey = String.fromEnvironment('GROQ_API_KEY');
+    if (buildKey.isNotEmpty) {
+      _groqService.initialize(buildKey);
+    }
   }
 
   // ── LOADING DATA ──────────────────────────────────────────────

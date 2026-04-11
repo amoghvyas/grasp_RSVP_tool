@@ -30,7 +30,8 @@ class GroqService {
         Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
         headers: {
           'Authorization': 'Bearer $_apiKey',
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Accept': 'application/json',
         },
         body: jsonEncode({
           'model': _model,
@@ -137,7 +138,8 @@ class GroqService {
         Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
         headers: {
           'Authorization': 'Bearer $_apiKey',
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Accept': 'application/json',
         },
         body: jsonEncode({
           'model': _visionModel,
