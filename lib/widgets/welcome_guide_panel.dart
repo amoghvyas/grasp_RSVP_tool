@@ -33,6 +33,7 @@ class WelcomeGuidePanel extends StatelessWidget {
                 'Paste text, upload a PDF, or link an article URL.',
                 Icons.add_rounded,
                 isDark,
+                true,
               ),
               const SizedBox(width: 12),
               _guideCard(
@@ -40,6 +41,7 @@ class WelcomeGuidePanel extends StatelessWidget {
                 'Adjust your speed. Start at 300 WPM and scale.',
                 Icons.speed_rounded,
                 isDark,
+                false,
               ),
               const SizedBox(width: 12),
               _guideCard(
@@ -47,6 +49,15 @@ class WelcomeGuidePanel extends StatelessWidget {
                 'Use AI tools to generate MCQs and summaries.',
                 Icons.auto_awesome_rounded,
                 isDark,
+                false,
+              ),
+              const SizedBox(width: 12),
+              _guideCard(
+                'Focus',
+                'Use Pomodoro and timers to maintain flow.',
+                Icons.timer_rounded,
+                isDark,
+                false,
               ),
             ],
           ),
@@ -55,8 +66,9 @@ class WelcomeGuidePanel extends StatelessWidget {
     );
   }
 
-  Widget _guideCard(String title, String desc, IconData icon, bool isDark) {
+  Widget _guideCard(String title, String desc, IconData icon, bool isDark, bool isFirst) {
     return Container(
+      key: isFirst ? const ValueKey('guide_first_card') : null,
       width: 240,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(

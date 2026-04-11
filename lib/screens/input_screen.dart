@@ -10,6 +10,7 @@ import '../providers/theme_provider.dart';
 import '../widgets/apple_widgets.dart';
 import '../widgets/developer_overlay.dart';
 import '../widgets/dropzone_widget.dart';
+import '../widgets/focus_tools_overlay.dart';
 import '../widgets/study_tools_panel.dart';
 import '../widgets/welcome_guide_panel.dart';
 
@@ -29,6 +30,10 @@ class _InputScreenState extends State<InputScreen> {
   Timer? _installTimer;
   int _inputTab = 0; // 0=Paste, 1=File, 2=URL
 
+  final GlobalKey _clockKey = GlobalKey();
+  final GlobalKey _guideKey = GlobalKey();
+  bool _showArrow = false;
+
   @override
   void initState() {
     super.initState();
@@ -37,6 +42,17 @@ class _InputScreenState extends State<InputScreen> {
       if (isInstallable != _isInstallable) {
         setState(() => _isInstallable = isInstallable);
       }
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          setState(() => _showArrow = true);
+          Future.delayed(const Duration(seconds: 3), () {
+            if (mounted) setState(() => _showArrow = false);
+          });
+        }
+      });
     });
   }
 
@@ -88,69 +104,97 @@ class _InputScreenState extends State<InputScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: sw < 600 ? 20 : 40, vertical: 60),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: sw > 900 ? 800 : double.infinity),
-              child: Column(
-                children: [
-                  _buildHeader(isDark),
-                  const SizedBox(height: 60),
-                  const WelcomeGuidePanel(),
-                  const SizedBox(height: 48),
-                  
-                  AppleCard(
-                    padding: EdgeInsets.zero,
-                    child: Column(
-                      children: [
-                        _buildTabSwitcher(isDark),
-                        const Divider(height: 1),
-                        Padding(
-                          padding: const EdgeInsets.all(24),
-                          child: _buildInputArea(provider, state, isDark),
+      body: Stack(
+        children: [
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.symmetric(horizontal: sw < 600 ? 20 : 40, vertical: 60),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: sw > 900 ? 800 : double.infinity),
+                  child: Column(
+                    children: [
+                      _buildHeader(isDark),
+                      const SizedBox(height: 60),
+                      WelcomeGuidePanel(key: _guideKey),
+                      const SizedBox(height: 48),
+                      
+                      AppleCard(
+                        padding: EdgeInsets.zero,
+                        child: Column(
+                          children: [
+                            _buildTabSwitcher(isDark),
+                            const Divider(height: 1),
+                            Padding(
+                              padding: const EdgeInsets.all(24),
+                              child: _buildInputArea(provider, state, isDark),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                  
-                  if (state.hasContent) ...[
-                    const SizedBox(height: 32),
-                    AppleCard(
-                      child: Row(
-                        children: [
-                          Expanded(child: _buildContentStats(state, isDark)),
-                          const SizedBox(width: 24),
-                          AppleButton(
-                            label: 'Start Reading',
-                            onPressed: () => provider.startReading(),
-                            icon: Icons.play_arrow_rounded,
-                          ),
-                        ],
                       ),
-                    ),
-                    if (provider.isAiReady) ...[
-                      const SizedBox(height: 24),
-                      const StudyToolsPanel(),
+                      
+                      if (state.hasContent) ...[
+                        const SizedBox(height: 32),
+                        AppleCard(
+                          child: Row(
+                            children: [
+                              Expanded(child: _buildContentStats(state, isDark)),
+                              const SizedBox(width: 24),
+                              AppleButton(
+                                label: 'Start Reading',
+                                onPressed: () => provider.startReading(),
+                                icon: Icons.play_arrow_rounded,
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (provider.isAiReady) ...[
+                          const SizedBox(height: 24),
+                          const StudyToolsPanel(),
+                        ],
+                      ],
+                      
+                      const SizedBox(height: 80),
+                       AppleButton(
+                        label: 'Meet the Developer',
+                        isPrimary: false,
+                        onPressed: () => showDialog(
+                          context: context,
+                          builder: (context) => const DeveloperOverlay(),
+                        ),
+                      ),
+                      const SizedBox(height: 48),
                     ],
-                  ],
-                  
-                  const SizedBox(height: 80),
-                   AppleButton(
-                    label: 'Meet the Developer',
-                    isPrimary: false,
-                    onPressed: () => showDialog(
-                      context: context,
-                      builder: (context) => const DeveloperOverlay(),
-                    ),
                   ),
-                  const SizedBox(height: 48),
-                ],
+                ),
               ),
             ),
           ),
-        ),
+
+          // Focus Tools Trigger
+          Positioned(
+            top: 24,
+            right: 24,
+            child: SafeArea(
+              child: AppleCard(
+                key: _clockKey,
+                padding: EdgeInsets.zero,
+                child: IconButton(
+                  onPressed: () => showDialog(
+                    context: context, 
+                    builder: (context) => const FocusToolsOverlay(),
+                  ),
+                  icon: const Icon(Icons.access_time_filled_rounded),
+                  color: isDark ? Colors.white : Colors.black,
+                  iconSize: 22,
+                ),
+              ),
+            ),
+          ),
+
+          // Animated Arrow Overlay
+          if (_showArrow) _AnimatedArrow(startKey: _guideKey, endKey: _clockKey),
+        ],
       ),
       floatingActionButton: _buildThemeToggle(isDark),
     );
@@ -326,4 +370,103 @@ class _InputScreenState extends State<InputScreen> {
       child: Icon(isDark ? Icons.light_mode : Icons.dark_mode, color: isDark ? Colors.black : Colors.white),
     );
   }
+}
+
+class _AnimatedArrow extends StatefulWidget {
+  final GlobalKey startKey;
+  final GlobalKey endKey;
+
+  const _AnimatedArrow({required this.startKey, required this.endKey});
+
+  @override
+  State<_AnimatedArrow> createState() => _AnimatedArrowState();
+}
+
+class _AnimatedArrowState extends State<_AnimatedArrow> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 1));
+    _controller.repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final startBox = widget.startKey.currentContext?.findRenderObject() as RenderBox?;
+    final endBox = widget.endKey.currentContext?.findRenderObject() as RenderBox?;
+
+    if (startBox == null || endBox == null) return const SizedBox();
+
+    final startPos = startBox.localToGlobal(Offset(startBox.size.width / 2, 0));
+    final endPos = endBox.localToGlobal(Offset(endBox.size.width / 2, endBox.size.height));
+
+    return IgnorePointer(
+      child: CustomPaint(
+        size: MediaQuery.of(context).size,
+        painter: _ArrowPainter(startPos, endPos, _controller),
+      ),
+    );
+  }
+}
+
+class _ArrowPainter extends CustomPainter {
+  final Offset start;
+  final Offset end;
+  final Animation<double> animation;
+
+  _ArrowPainter(this.start, this.end, this.animation) : super(repaint: animation);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = const Color(0xFF0071E3).withValues(alpha: 0.6)
+      ..strokeWidth = 3
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    final path = Path();
+    path.moveTo(start.dx, start.dy);
+    
+    // Curved arrow path
+    final controlPoint = Offset(end.dx - 100, start.dy - 100);
+    path.quadraticBezierTo(controlPoint.dx, controlPoint.dy, end.dx, end.dy);
+
+    // Animate the path drawing slightly? Or just the opacity
+    canvas.drawPath(path, paint);
+
+    // Arrowhead logic
+    final lastPoint = end;
+    const arrowSize = 10.0;
+    final angle = (end - controlPoint).direction;
+    
+    final pathHead = Path();
+    pathHead.moveTo(lastPoint.dx, lastPoint.dy);
+    pathHead.relativeLineTo(-arrowSize * 2 * (animation.value + 0.5), -arrowSize);
+    pathHead.moveTo(lastPoint.dx, lastPoint.dy);
+    pathHead.relativeLineTo(-arrowSize * 2 * (animation.value + 0.5), arrowSize);
+    
+    // Draw an actual arrow head
+    final headPoint1 = Offset(
+      lastPoint.dx - arrowSize * (animation.value + 0.5) * 2 * (end - controlPoint).dx / (end - controlPoint).distance,
+      lastPoint.dy - arrowSize * (animation.value + 0.5) * 2 * (end - controlPoint).dy / (end - controlPoint).distance,
+    );
+    // Simple enough for now - let's skip complex geom and just draw two lines
+    canvas.save();
+    canvas.translate(end.dx, end.dy);
+    canvas.rotate(angle);
+    canvas.drawLine(Offset.zero, const Offset(-15, -10), paint);
+    canvas.drawLine(Offset.zero, const Offset(-15, 10), paint);
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(_ArrowPainter oldDelegate) => true;
 }
