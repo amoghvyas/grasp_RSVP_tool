@@ -8,7 +8,6 @@ import '../widgets/settings_overlay.dart';
 import '../widgets/word_display.dart';
 import '../widgets/active_recall_overlay.dart';
 
-/// The full-screen RSVP reading canvas — distraction-free reading mode.
 class ReaderScreen extends StatelessWidget {
   const ReaderScreen({super.key});
 
@@ -17,54 +16,31 @@ class ReaderScreen extends StatelessWidget {
     return Consumer<ReaderProvider>(
       builder: (context, provider, _) {
         final state = provider.state;
-        final screenWidth = MediaQuery.of(context).size.width;
+        final isDark = Theme.of(context).brightness == Brightness.dark;
 
         return Scaffold(
-          backgroundColor: const Color(0xFF020208),
+          backgroundColor: isDark ? const Color(0xFF000000) : const Color(0xFFFBFBFD),
           body: Stack(
             children: [
-              // ── Subtle ambient glow ────────────────────────────────
-              if (state.isPlaying)
-                Center(
-                  child: Container(
-                    width: 360,
-                    height: 360,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          const Color(0xFF6C63FF).withValues(alpha: 0.04),
-                          Colors.transparent,
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
-              // ── Main tap zone ──────────────────────────────────────
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: () => provider.togglePlayPause(),
                 onDoubleTapDown: (details) {
+                  final screenWidth = MediaQuery.of(context).size.width;
                   if (details.localPosition.dx < screenWidth / 2) {
                     provider.rewind(10);
                   }
                 },
-                onDoubleTap: () {},
                 child: SizedBox.expand(
                   child: Column(
                     children: [
-                      // ── Top stats bar ────────────────────────────
-                      _buildTopBar(context, provider, state),
-
-                      // ── Word display ─────────────────────────────
+                      _buildTopBar(context, provider, state, isDark),
                       Expanded(
                         child: Center(
                           child: state.hasContent
                               ? AnimatedSwitcher(
                                   duration: const Duration(milliseconds: 75),
-                                  transitionBuilder: (child, animation) =>
-                                      FadeTransition(opacity: animation, child: child),
+                                  transitionBuilder: (child, animation) => FadeTransition(opacity: animation, child: child),
                                   child: WordDisplay(
                                     key: ValueKey(state.currentIndex),
                                     word: state.currentWord,
@@ -72,64 +48,28 @@ class ReaderScreen extends StatelessWidget {
                                   ),
                                 )
                               : Text(
-                                  'No text loaded',
-                                  style: GoogleFonts.inter(
-                                    color: Colors.white12,
-                                    fontSize: 18,
+                                  'NO CONTENT LOADED',
+                                  style: GoogleFonts.outfit(
+                                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 2,
                                   ),
                                 ),
                         ),
                       ),
-
-                      // ── Progress bar ─────────────────────────────
-                      _buildProgressBar(state),
+                      _buildProgressBar(state, isDark),
                     ],
                   ),
                 ),
               ),
 
-              // ── Paused hint ────────────────────────────────────────
               if (!state.isPlaying && state.hasContent && !state.isRecallActive)
-                Positioned(
-                  bottom: 60,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: AnimatedOpacity(
-                      opacity: 0.35,
-                      duration: const Duration(milliseconds: 400),
-                      child: Column(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.06),
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-                            ),
-                            child: const Icon(Icons.pause_rounded, size: 22, color: Colors.white54),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Tap to resume',
-                            style: GoogleFonts.inter(
-                              fontSize: 11,
-                              color: Colors.white24,
-                              letterSpacing: 1,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+                _buildPausedOverlay(isDark),
 
-              // ── Settings overlay ────────────────────────────────────
               Positioned.fill(
                 child: SettingsOverlay(visible: !state.isPlaying && !state.isRecallActive),
               ),
-
-              // ── Active recall overlay ───────────────────────────────
               const ActiveRecallOverlay(),
             ],
           ),
@@ -138,89 +78,29 @@ class ReaderScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTopBar(BuildContext context, ReaderProvider provider, state) {
-    if (state.isSprintActive) {
-      return SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF6C63FF).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: const Color(0xFF6C63FF).withValues(alpha: 0.3)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.timer_rounded, size: 14, color: Color(0xFF6C63FF)),
-                    const SizedBox(width: 8),
-                    Text(
-                      'SPRINT  ${state.sprintTimeFormatted}',
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                        letterSpacing: 1.5,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    GestureDetector(
-                      onTap: () => provider.stopSprint(),
-                      child: const Icon(Icons.close_rounded, size: 14, color: Colors.white30),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
+  Widget _buildTopBar(BuildContext context, ReaderProvider provider, state, bool isDark) {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Word counter
             Text(
-              '${state.currentIndex + 1} / ${state.totalWords}',
-              style: GoogleFonts.inter(
+              '${state.currentIndex + 1}  /  ${state.totalWords}',
+              style: GoogleFonts.outfit(
                 fontSize: 11,
-                fontWeight: FontWeight.w500,
-                color: Colors.white.withValues(alpha: 0.14),
+                fontWeight: FontWeight.w700,
+                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.2),
                 letterSpacing: 1.5,
               ),
             ),
-            // WPM + Sprint launcher
             Row(
               children: [
-                _buildThemeToggle(),
-                const SizedBox(width: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.04),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-                  ),
-                  child: Text(
-                    '${state.wpm} WPM',
-                    style: GoogleFonts.inter(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white.withValues(alpha: 0.2),
-                      letterSpacing: 1.5,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                _buildSprintLauncher(provider),
+                _buildThemeToggle(context, isDark),
+                const SizedBox(width: 16),
+                _buildWpmBadge(state, isDark),
+                const SizedBox(width: 16),
+                _buildSprintControls(provider, state, isDark),
               ],
             ),
           ],
@@ -229,39 +109,100 @@ class ReaderScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSprintLauncher(ReaderProvider provider) {
+  Widget _buildWpmBadge(state, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        '${state.wpm} WPM',
+        style: GoogleFonts.outfit(
+          fontSize: 10,
+          fontWeight: FontWeight.w800,
+          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.3),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSprintControls(ReaderProvider provider, state, bool isDark) {
+    if (state.isSprintActive) {
+      return GestureDetector(
+        onTap: () => provider.stopSprint(),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: (isDark ? const Color(0xFF00A2FF) : const Color(0xFF0071E3)).withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: (isDark ? const Color(0xFF00A2FF) : const Color(0xFF0071E3)).withValues(alpha: 0.2)),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.timer_rounded, size: 12, color: isDark ? const Color(0xFF00A2FF) : const Color(0xFF0071E3)),
+              const SizedBox(width: 8),
+              Text(
+                state.sprintTimeFormatted,
+                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(width: 8),
+              const Icon(Icons.close_rounded, size: 10, color: Colors.white24),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Row(
-      mainAxisSize: MainAxisSize.min,
       children: [
-        _sprintChip(provider, 15, Icons.bolt_rounded, '15m'),
+        _sprintBtn(provider, 15, isDark),
         const SizedBox(width: 8),
-        _sprintChip(provider, 25, Icons.local_fire_department_rounded, '25m'),
+        _sprintBtn(provider, 25, isDark),
         const SizedBox(width: 8),
-        _sprintChip(provider, 50, Icons.psychology_rounded, '50m'),
+        _sprintBtn(provider, 50, isDark),
       ],
     );
   }
 
-  Widget _sprintChip(ReaderProvider provider, int mins, IconData icon, String label) {
+  Widget _sprintBtn(ReaderProvider provider, int mins, bool isDark) {
     return GestureDetector(
       onTap: () => provider.startSprint(mins),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+          color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.02),
+          borderRadius: BorderRadius.circular(8),
         ),
-        child: Row(
+        child: Text(
+          '${mins}m',
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.2),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPausedOverlay(bool isDark) {
+    return Positioned(
+      bottom: 100,
+      left: 0,
+      right: 0,
+      child: Center(
+        child: Column(
           children: [
-            Icon(icon, size: 12, color: const Color(0xFF6C63FF)),
-            const SizedBox(width: 6),
+            Icon(Icons.pause_circle_filled_rounded, size: 48, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05)),
+            const SizedBox(height: 12),
             Text(
-              label,
-              style: GoogleFonts.inter(
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
-                color: Colors.white.withValues(alpha: 0.5),
+              'PAUSED',
+              style: GoogleFonts.outfit(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 2,
+                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1),
               ),
             ),
           ],
@@ -270,60 +211,27 @@ class ReaderScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildThemeToggle() {
-    return Consumer<ThemeProvider>(
-      builder: (context, theme, _) {
-        return GestureDetector(
-          onTap: () => theme.toggle(),
-          child: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-            ),
-            child: Icon(
-              theme.isDarkMode ? Icons.nightlight_round : Icons.wb_sunny_rounded,
-              size: 14,
-              color: theme.isDarkMode ? const Color(0xFF6C63FF) : Colors.amber,
-            ),
-          ),
-        );
-      },
+  Widget _buildThemeToggle(BuildContext context, bool isDark) {
+    return GestureDetector(
+      onTap: () => context.read<ThemeProvider>().toggle(),
+      child: Icon(
+        isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+        size: 18,
+        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.2),
+      ),
     );
   }
 
-
-  Widget _buildProgressBar(state) {
+  Widget _buildProgressBar(state, bool isDark) {
+    final progress = state.progress;
     return Container(
-      height: 3,
-      margin: const EdgeInsets.only(bottom: 24, left: 0, right: 0),
-      child: LayoutBuilder(
-        builder: (context, constraints) => ClipRRect(
-          child: Stack(
-            children: [
-              Container(
-                width: constraints.maxWidth,
-                color: Colors.white.withValues(alpha: 0.04),
-              ),
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 130),
-                width: constraints.maxWidth * state.progress,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF6C63FF), Color(0xFF00D9FF)],
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF6C63FF).withValues(alpha: 0.5),
-                      blurRadius: 10,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+      height: 2,
+      width: double.infinity,
+      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+      child: FractionallySizedBox(
+        alignment: Alignment.centerLeft,
+        widthFactor: progress.clamp(0.0, 1.0),
+        child: Container(color: isDark ? const Color(0xFF00A2FF) : const Color(0xFF0071E3)),
       ),
     );
   }

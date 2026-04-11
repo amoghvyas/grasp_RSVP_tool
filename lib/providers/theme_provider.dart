@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
-// ThemeProvider manages the visual theme state (Dark/Light mode).
 class ThemeProvider extends ChangeNotifier {
-  bool isDarkMode = true;
+  ThemeMode _themeMode = ThemeMode.dark;
+
+  ThemeMode get themeMode => _themeMode;
+  bool get isDarkMode => _themeMode == ThemeMode.dark;
 
   void toggle() {
-    isDarkMode = !isDarkMode;
+    _themeMode = isDarkMode ? ThemeMode.light : ThemeMode.dark;
     notifyListeners();
   }
 }

@@ -7,12 +7,7 @@ import 'providers/theme_provider.dart';
 import 'screens/input_screen.dart';
 import 'screens/reader_screen.dart';
 
-/// Groq API key injected at build time via:
-///   flutter run --dart-define=GROQ_API_KEY=your_key_here
-const _groqApiKey = String.fromEnvironment(
-  'GROQ_API_KEY',
-  defaultValue: '',
-);
+const _groqApiKey = String.fromEnvironment('GROQ_API_KEY', defaultValue: '');
 
 void main() {
   runApp(const RSVPReaderApp());
@@ -36,108 +31,92 @@ class RSVPReaderApp extends StatelessWidget {
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, theme, _) {
-          return ColorFiltered(
-            colorFilter: theme.isDarkMode 
-                ? const ColorFilter.mode(Colors.transparent, BlendMode.multiply)
-                : const ColorFilter.matrix([
-                    -1,  0,  0, 0, 255,
-                     0, -1,  0, 0, 255,
-                     0,  0, -1, 0, 255,
-                     0,  0,  0, 1, 0,
-                  ]),
-            child: MaterialApp(
-              title: 'Grasp — RSVP Speed Reader',
-              debugShowCheckedModeBanner: false,
-              theme: _buildTheme(),
-              home: const _AppShell(),
-            ),
+          return MaterialApp(
+            title: 'Grasp — RSVP Speed Reader',
+            debugShowCheckedModeBanner: false,
+            themeMode: theme.themeMode,
+            theme: _buildLightTheme(),
+            darkTheme: _buildDarkTheme(),
+            home: const _AppShell(),
           );
         },
       ),
     );
   }
 
-  /// Builds the dark, premium theme used throughout the app.
-  ThemeData _buildTheme() {
+  ThemeData _buildLightTheme() {
+    final base = ThemeData.light();
+    return base.copyWith(
+      scaffoldBackgroundColor: const Color(0xFFFBFBFD),
+      colorScheme: ColorScheme.light(
+        primary: const Color(0xFF0071E3), // Apple Blue
+        secondary: const Color(0xFF1D1D1F),
+        surface: Colors.white,
+        onSurface: const Color(0xFF1D1D1F),
+        error: const Color(0xFFFF3B30),
+      ),
+      textTheme: GoogleFonts.outfitTextTheme(base.textTheme).apply(
+        bodyColor: const Color(0xFF1D1D1F),
+        displayColor: const Color(0xFF1D1D1F),
+      ),
+      dividerTheme: DividerThemeData(color: Colors.black.withValues(alpha: 0.05), thickness: 1),
+      inputDecorationTheme: _inputTheme(isDark: false),
+      appBarTheme: const AppBarTheme(backgroundColor: Colors.transparent, elevation: 0),
+    );
+  }
+
+  ThemeData _buildDarkTheme() {
     final base = ThemeData.dark();
     return base.copyWith(
-      scaffoldBackgroundColor: const Color(0xFF05050A),
+      scaffoldBackgroundColor: const Color(0xFF000000),
       colorScheme: ColorScheme.dark(
-        primary: const Color(0xFF6C63FF),
-        secondary: const Color(0xFF00D9FF),
-        surface: const Color(0xFF12121A),
-        error: const Color(0xFFFF4757),
+        primary: const Color(0xFF00A2FF),
+        secondary: const Color(0xFF86868B),
+        surface: const Color(0xFF161617),
+        onSurface: const Color(0xFFF5F5F7),
+        error: const Color(0xFFFF453A),
       ),
-      textTheme: GoogleFonts.interTextTheme(base.textTheme).apply(
-        bodyColor: Colors.white,
-        displayColor: Colors.white,
+      textTheme: GoogleFonts.outfitTextTheme(base.textTheme).apply(
+        bodyColor: const Color(0xFFF5F5F7),
+        displayColor: const Color(0xFFF5F5F7),
       ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF6C63FF),
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          textStyle: GoogleFonts.inter(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-      sliderTheme: SliderThemeData(
-        activeTrackColor: const Color(0xFF6C63FF),
-        inactiveTrackColor: Colors.white12,
-        thumbColor: const Color(0xFF6C63FF),
-        overlayColor: const Color(0xFF6C63FF).withValues(alpha: 0.2),
-        valueIndicatorColor: const Color(0xFF6C63FF),
-        valueIndicatorTextStyle: GoogleFonts.inter(
-          color: Colors.white,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: const Color(0xFF1A1A2E),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF6C63FF), width: 2),
-        ),
-        hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
-        contentPadding: const EdgeInsets.all(20),
+      dividerTheme: DividerThemeData(color: Colors.white.withValues(alpha: 0.05), thickness: 1),
+      inputDecorationTheme: _inputTheme(isDark: true),
+      appBarTheme: const AppBarTheme(backgroundColor: Colors.transparent, elevation: 0),
+    );
+  }
+
+  InputDecorationTheme _inputTheme({required bool isDark}) {
+    final borderColor = isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1);
+    final fillColor = isDark ? const Color(0xFF1C1C1E) : const Color(0xFFF2F2F7);
+    
+    return InputDecorationTheme(
+      filled: true,
+      fillColor: fillColor,
+      hintStyle: TextStyle(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.3), fontSize: 15),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: isDark ? const Color(0xFF00A2FF) : const Color(0xFF0071E3), width: 1.5),
       ),
     );
   }
 }
 
-/// Root widget that switches between InputScreen and ReaderScreen
-/// based on the current reading state.
 class _AppShell extends StatelessWidget {
   const _AppShell();
 
   @override
   Widget build(BuildContext context) {
-    final isReading = context.select<ReaderProvider, bool>(
-      (p) => p.state.isReading,
-    );
-
+    final isReading = context.select<ReaderProvider, bool>((p) => p.state.isReading);
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 400),
-      transitionBuilder: (child, animation) {
-        return FadeTransition(opacity: animation, child: child);
-      },
-      child: isReading
-          ? const ReaderScreen(key: ValueKey('reader'))
-          : const InputScreen(key: ValueKey('input')),
+      duration: const Duration(milliseconds: 500),
+      switchInCurve: Curves.easeOutExpo,
+      switchOutCurve: Curves.easeInExpo,
+      transitionBuilder: (child, animation) => FadeTransition(opacity: animation, child: child),
+      child: isReading ? const ReaderScreen(key: ValueKey('r')) : const InputScreen(key: ValueKey('i')),
     );
   }
 }

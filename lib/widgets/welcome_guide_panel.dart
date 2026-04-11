@@ -1,86 +1,89 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
-/// A premium, expandable welcome guide that explains the tool's capability.
-///
-/// Provides a high-level overview of RSVP science, AI integration,
-/// and pro-tips for maximizing academic performance.
 class WelcomeGuidePanel extends StatelessWidget {
   const WelcomeGuidePanel({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 24),
-      height: 140, // fixed height for horizontal scroll
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        clipBehavior: Clip.none,
-        children: [
-          _buildFeatureCard(
-            Icons.bolt_rounded,
-            const Color(0xFF6C63FF),
-            'Focus-Flow Reader',
-            'Read 5x faster by eliminating sub-vocalization directly into your visual center.',
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4),
+          child: Text(
+            'GETTING STARTED',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.5,
+              color: isDark ? Colors.white24 : Colors.black26,
+            ),
           ),
-          const SizedBox(width: 16),
-          _buildFeatureCard(
-            Icons.psychology_rounded,
-            const Color(0xFF00D9FF),
-            'AI-Generated Intelligence',
-            'Turbocharged by Groq LPU to instantly create Summaries, Viva Q&A, and Interactive Quizzes.',
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          height: 140,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: [
+              _guideCard(
+                'Import',
+                'Paste text, upload a PDF, or link an article URL.',
+                Icons.add_rounded,
+                isDark,
+              ),
+              const SizedBox(width: 12),
+              _guideCard(
+                'Calibrate',
+                'Adjust your speed. Start at 300 WPM and scale.',
+                Icons.speed_rounded,
+                isDark,
+              ),
+              const SizedBox(width: 12),
+              _guideCard(
+                'Master',
+                'Use AI tools to generate MCQs and summaries.',
+                Icons.auto_awesome_rounded,
+                isDark,
+              ),
+            ],
           ),
-          const SizedBox(width: 16),
-          _buildFeatureCard(
-            Icons.query_stats_rounded,
-            const Color(0xFFFF6B9D),
-            'Active Retention Loop',
-            'Take auto-generated conceptual quizzes after chunks of reading to force maximum retention.',
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  Widget _buildFeatureCard(IconData icon, Color color, String title, String subtitle) {
+  Widget _guideCard(String title, String desc, IconData icon, bool isDark) {
     return Container(
-      width: 260,
+      width: 240,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.03),
+        color: isDark ? const Color(0xFF1C1C1E) : const Color(0xFFF2F2F7),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+        border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.02)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, size: 18, color: color),
-          ),
-          const SizedBox(height: 14),
+          Icon(icon, size: 20, color: isDark ? Colors.white38 : Colors.black38),
+          const SizedBox(height: 16),
           Text(
             title,
-            style: GoogleFonts.inter(
+            style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w700,
-              color: Colors.white,
-              letterSpacing: -0.2,
+              color: isDark ? Colors.white.withValues(alpha: 0.9) : Colors.black.withValues(alpha: 0.9),
             ),
           ),
-          const SizedBox(height: 6),
-          Expanded(
-            child: Text(
-              subtitle,
-              style: GoogleFonts.inter(
-                fontSize: 12,
-                height: 1.5,
-                color: Colors.white.withValues(alpha: 0.45),
-              ),
+          const SizedBox(height: 4),
+          Text(
+            desc,
+            style: TextStyle(
+              fontSize: 12,
+              height: 1.4,
+              color: isDark ? Colors.white38 : Colors.black38,
             ),
           ),
         ],
