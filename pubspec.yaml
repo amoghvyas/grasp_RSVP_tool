@@ -24,7 +24,6 @@ dependencies:
 
   # Typography
   google_fonts: ^6.2.1
-  google_generative_ai: ^0.4.7
   url_launcher: ^6.3.0
   shared_preferences: ^2.5.2
   csv: ^6.0.0

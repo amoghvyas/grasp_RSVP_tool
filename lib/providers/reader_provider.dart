@@ -8,23 +8,17 @@ import 'package:csv/csv.dart';
 import '../models/reader_state.dart';
 import '../services/file_parser_service.dart';
 import '../services/focus_service.dart';
-import '../services/gemini_service.dart';
 import '../services/groq_service.dart';
 import '../services/sanitizer_service.dart';
 import '../services/tts_service.dart';
 import '../services/url_import_service.dart';
 
-// Conditional import: dart:html on web, stub on other platforms
-import 'download_stub.dart'
-    if (dart.library.html) 'download_html.dart';
+import 'download_stub.dart' if (dart.library.html) 'download_html.dart';
 
-/// Central state manager for the RSVP reader.
 class ReaderProvider extends ChangeNotifier {
   ReaderState _state = const ReaderState();
-  ReaderState get state => _state;
-
-  // ── Services ──────────────────────────────────────────────────
-  final GeminiService _geminiService = GeminiService();
+  ReaderState get state =>
+      _state; // ── Services ──────────────────────────────────────────────────
   final FocusService _focusService = FocusService();
   final TtsService _ttsService = TtsService();
   final GroqService _groqService = GroqService();
@@ -76,12 +70,7 @@ class ReaderProvider extends ChangeNotifier {
   // ── AI STUDY TOOLS ─────────────────────────────────────────────
 
   void updateApiKey(String key) {
-    if (_state.aiProvider == AiProvider.gemini) {
-      _geminiService.initialize(key);
-    } else {
-      _groqService.initialize(key);
-    }
-    // Recheck initialization status
+    _groqService.initialize(key);
     notifyListeners();
   }
 
@@ -90,20 +79,10 @@ class ReaderProvider extends ChangeNotifier {
     _state = _state.copyWith(isSummaryLoading: true, clearAiError: true);
     notifyListeners();
     try {
-      String summary;
-      if (_state.aiProvider == AiProvider.gemini) {
-        summary = await _geminiService.generateSummary(_state.rawText, hinglish: hinglish);
-      } else {
-        try {
-          summary = await _groqService.generateSummary(_state.rawText, hinglish: hinglish);
-        } catch (e1) {
-          try {
-            summary = await _geminiService.generateSummary(_state.rawText, hinglish: hinglish);
-          } catch (e2) {
-            throw Exception('Groq Failure: $e1\n\nGemini Fallback Failure: $e2');
-          }
-        }
-      }
+      final summary = await _groqService.generateSummary(
+        _state.rawText,
+        hinglish: hinglish,
+      );
       _state = _state.copyWith(summary: summary, isSummaryLoading: false);
     } catch (e) {
       _state = _state.copyWith(
@@ -119,20 +98,10 @@ class ReaderProvider extends ChangeNotifier {
     _state = _state.copyWith(isVivaLoading: true, clearAiError: true);
     notifyListeners();
     try {
-      String questions;
-      if (_state.aiProvider == AiProvider.gemini) {
-        questions = await _geminiService.generateVivaQuestions(_state.rawText, hinglish: hinglish);
-      } else {
-        try {
-          questions = await _groqService.generateVivaQuestions(_state.rawText, hinglish: hinglish);
-        } catch (e1) {
-          try {
-            questions = await _geminiService.generateVivaQuestions(_state.rawText, hinglish: hinglish);
-          } catch (e2) {
-            throw Exception('Groq Failure: $e1\n\nGemini Fallback Failure: $e2');
-          }
-        }
-      }
+      final questions = await _groqService.generateVivaQuestions(
+        _state.rawText,
+        hinglish: hinglish,
+      );
       _state = _state.copyWith(vivaQuestions: questions, isVivaLoading: false);
     } catch (e) {
       _state = _state.copyWith(
@@ -145,7 +114,9 @@ class ReaderProvider extends ChangeNotifier {
 
   void exportToFlashcards() {
     if (_state.vivaQuestions == null) return;
-    final rows = <List<String>>[['Question', 'Answer']];
+    final rows = <List<String>>[
+      ['Question', 'Answer'],
+    ];
     final sections = _state.vivaQuestions!.split('### Q');
     for (var i = 1; i < sections.length; i++) {
       final part = sections[i];
@@ -158,7 +129,10 @@ class ReaderProvider extends ChangeNotifier {
     }
     final csvData = const ListToCsvConverter().convert(rows);
     if (kIsWeb) {
-      downloadCsv(csvData, 'Grasp_Flashcards_${_state.fileName ?? "Pasted"}.csv');
+      downloadCsv(
+        csvData,
+        'Grasp_Flashcards_${_state.fileName ?? "Pasted"}.csv',
+      );
     }
   }
 
@@ -170,23 +144,12 @@ class ReaderProvider extends ChangeNotifier {
     notifyListeners();
     try {
       final start = (_state.currentIndex - 300).clamp(0, _state.totalWords);
-      final contextText = _state.words.sublist(start, _state.currentIndex).join(' ');
-      
-      RecallQuestion recall;
-      if (_state.aiProvider == AiProvider.gemini) {
-        recall = await _geminiService.generateRecallQuestion(contextText);
-      } else {
-        try {
-          recall = await _groqService.generateRecallQuestion(contextText);
-        } catch (e1) {
-          try {
-            recall = await _geminiService.generateRecallQuestion(contextText);
-          } catch (e2) {
-            throw Exception('Groq Failure: $e1\n\nGemini Fallback Failure: $e2');
-          }
-        }
-      }
-      
+      final contextText = _state.words
+          .sublist(start, _state.currentIndex)
+          .join(' ');
+
+      final recall = await _groqService.generateRecallQuestion(contextText);
+
       _state = _state.copyWith(
         recallQuestion: recall.question,
         recallOptions: recall.options,
@@ -199,7 +162,10 @@ class ReaderProvider extends ChangeNotifier {
   }
 
   void submitRecallAnswer(int index) {
-    _state = _state.copyWith(hasAnsweredRecall: true, selectedRecallIndex: index);
+    _state = _state.copyWith(
+      hasAnsweredRecall: true,
+      selectedRecallIndex: index,
+    );
     notifyListeners();
   }
 
@@ -213,7 +179,8 @@ class ReaderProvider extends ChangeNotifier {
 
   void play() {
     if (!_state.hasContent || _state.isRecallActive) return;
-    if (_state.currentIndex >= _state.totalWords) _state = _state.copyWith(currentIndex: 0);
+    if (_state.currentIndex >= _state.totalWords)
+      _state = _state.copyWith(currentIndex: 0);
     _state = _state.copyWith(isPlaying: true);
     notifyListeners();
     _scheduleNextWord();
@@ -229,7 +196,10 @@ class ReaderProvider extends ChangeNotifier {
 
   void rewind([int count = 10]) {
     _state = _state.copyWith(
-      currentIndex: (_state.currentIndex - count).clamp(0, _state.totalWords - 1),
+      currentIndex: (_state.currentIndex - count).clamp(
+        0,
+        _state.totalWords - 1,
+      ),
     );
     notifyListeners();
   }
@@ -241,7 +211,11 @@ class ReaderProvider extends ChangeNotifier {
   }
 
   void startReading() {
-    _state = _state.copyWith(isReading: true, currentIndex: 0, isPlaying: false);
+    _state = _state.copyWith(
+      isReading: true,
+      currentIndex: 0,
+      isPlaying: false,
+    );
     notifyListeners();
   }
 
@@ -328,15 +302,21 @@ class ReaderProvider extends ChangeNotifier {
     } else {
       _ttsService.stop();
     }
-    
+
     _state = _state.copyWith(isListening: newState);
     notifyListeners();
   }
 
   void startSprint(int mins) {
     _sprintTimer?.cancel();
-    _state = _state.copyWith(isSprintActive: true, sprintTimeRemaining: mins * 60);
-    _sprintTimer = Timer.periodic(const Duration(seconds: 1), (t) => _tickSprint());
+    _state = _state.copyWith(
+      isSprintActive: true,
+      sprintTimeRemaining: mins * 60,
+    );
+    _sprintTimer = Timer.periodic(
+      const Duration(seconds: 1),
+      (t) => _tickSprint(),
+    );
     notifyListeners();
   }
 
@@ -351,24 +331,19 @@ class ReaderProvider extends ChangeNotifier {
       stopSprint();
       pause();
     } else {
-      _state = _state.copyWith(sprintTimeRemaining: _state.sprintTimeRemaining - 1);
+      _state = _state.copyWith(
+        sprintTimeRemaining: _state.sprintTimeRemaining - 1,
+      );
       notifyListeners();
     }
   }
 
-  void setAiProvider(AiProvider p) {
-    _state = _state.copyWith(aiProvider: p);
-    _savePref('rsvp_aiProvider', p.name);
-    notifyListeners();
-  }
-
-  void initializeAiKeys(String geminiKey, String groqKey) {
-    if (geminiKey.isNotEmpty) _geminiService.initialize(geminiKey);
+  void initializeGroq(String groqKey) {
     if (groqKey.isNotEmpty) _groqService.initialize(groqKey);
     notifyListeners();
   }
 
-  bool get isAiReady => _geminiService.isInitialized || _groqService.isInitialized;
+  bool get isAiReady => _groqService.isInitialized;
 
   // ── PERSISTENCE ───────────────────────────────────────────────
 
@@ -376,32 +351,29 @@ class ReaderProvider extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     final wpm = prefs.getInt('rsvp_wpm') ?? 300;
     final fontSize = (prefs.getInt('rsvp_fontSize') ?? 48).toDouble();
-    final focusSoundName = prefs.getString('rsvp_focusSound') ?? FocusSound.none.name;
+    final focusSoundName =
+        prefs.getString('rsvp_focusSound') ?? FocusSound.none.name;
     final ttsEnabled = (prefs.getInt('rsvp_ttsEnabled') ?? 0) == 1;
-    final aiProviderName = prefs.getString('rsvp_aiProvider') ?? AiProvider.gemini.name;
 
     final focusSound = FocusSound.values.firstWhere(
       (s) => s.name == focusSoundName,
       orElse: () => FocusSound.none,
-    );
-    final aiProvider = AiProvider.values.firstWhere(
-      (p) => p.name == aiProviderName,
-      orElse: () => AiProvider.gemini,
     );
 
     _state = _state.copyWith(
       wpm: wpm,
       fontSize: fontSize,
       focusSound: focusSound,
-      aiProvider: aiProvider,
     );
     notifyListeners();
   }
 
   Future<void> _savePref(String key, dynamic val) async {
     final prefs = await SharedPreferences.getInstance();
-    if (val is int) await prefs.setInt(key, val);
-    else if (val is String) await prefs.setString(key, val);
+    if (val is int)
+      await prefs.setInt(key, val);
+    else if (val is String)
+      await prefs.setString(key, val);
   }
 
   void _cancelTimer() {

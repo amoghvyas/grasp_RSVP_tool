@@ -6,15 +6,6 @@ import 'providers/reader_provider.dart';
 import 'screens/input_screen.dart';
 import 'screens/reader_screen.dart';
 
-/// Gemini API key injected at build time via:
-///   flutter run --dart-define=GEMINI_API_KEY=your_key_here
-///
-/// If no key is provided, falls back to the community key (free tier).
-const _geminiApiKey = String.fromEnvironment(
-  'GEMINI_API_KEY',
-  defaultValue: '', // Using empty string to enforce valid fallback checks
-);
-
 /// Groq API key injected at build time via:
 ///   flutter run --dart-define=GROQ_API_KEY=your_key_here
 const _groqApiKey = String.fromEnvironment(
@@ -34,8 +25,8 @@ class RSVPReaderApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) {
         final provider = ReaderProvider();
-        // Initialize AI services with their respective keys
-        provider.initializeAiKeys(_geminiApiKey, _groqApiKey);
+        // Initialize AI services with Groq Key
+        provider.initializeGroq(_groqApiKey);
         return provider;
       },
       child: MaterialApp(

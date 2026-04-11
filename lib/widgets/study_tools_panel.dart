@@ -72,10 +72,7 @@ class _StudyToolsPanelState extends State<StudyToolsPanel>
             curve: Curves.easeInOut,
             alignment: Alignment.topCenter,
             child: provider.isAiReady
-                ? Column(children: [
-                    _buildEngineSwitcher(provider, state),
-                    _buildTabContent(provider, state),
-                  ])
+                ? _buildTabContent(provider, state)
                 : _buildApiKeySetup(provider),
           ),
         ],
@@ -126,7 +123,7 @@ class _StudyToolsPanelState extends State<StudyToolsPanel>
                   ),
                 ),
                 Text(
-                  'Powered by Gemini · Fast inference via Groq LPU',
+                  'Powered by Lightning Fast Groq LPU',
                   style: GoogleFonts.inter(
                     fontSize: 11,
                     color: Colors.white.withValues(alpha: 0.35),
@@ -135,128 +132,12 @@ class _StudyToolsPanelState extends State<StudyToolsPanel>
               ],
             ),
           ),
-          // Provider badge
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-            decoration: BoxDecoration(
-              color: state.aiProvider == AiProvider.gemini
-                  ? const Color(0xFF00D9FF).withValues(alpha: 0.1)
-                  : const Color(0xFFFF6B9D).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: state.aiProvider == AiProvider.gemini
-                    ? const Color(0xFF00D9FF).withValues(alpha: 0.3)
-                    : const Color(0xFFFF6B9D).withValues(alpha: 0.3),
-              ),
-            ),
-            child: Text(
-              state.aiProvider == AiProvider.gemini ? '⚡ Gemini' : '∞ Infinite',
-              style: GoogleFonts.inter(
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
-                color: state.aiProvider == AiProvider.gemini
-                    ? const Color(0xFF00D9FF)
-                    : const Color(0xFFFF6B9D),
-                letterSpacing: 0.3,
-              ),
-            ),
-          ),
         ],
       ),
     );
   }
 
   // ════════════════════════════════════════════════════════════════════
-  //  ENGINE SWITCHER
-  // ════════════════════════════════════════════════════════════════════
-
-  Widget _buildEngineSwitcher(ReaderProvider provider, ReaderState state) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-      child: Container(
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.2),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
-        ),
-        child: Row(
-          children: [
-            _buildEngineOption(
-              label: 'Gemini',
-              subtitle: 'Standard · Free tier',
-              icon: Icons.auto_awesome,
-              accentColor: const Color(0xFF00D9FF),
-              isSelected: state.aiProvider == AiProvider.gemini,
-              onTap: () => provider.setAiProvider(AiProvider.gemini),
-            ),
-            _buildEngineOption(
-              label: 'Groq API',
-              subtitle: 'Lightning Fast LPU',
-              icon: Icons.bolt_rounded,
-              accentColor: const Color(0xFFFFB830),
-              isSelected: state.aiProvider == AiProvider.groq,
-              onTap: () => provider.setAiProvider(AiProvider.groq),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEngineOption({
-    required String label,
-    required String subtitle,
-    required IconData icon,
-    required Color accentColor,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            color: isSelected ? accentColor.withValues(alpha: 0.12) : Colors.transparent,
-            borderRadius: BorderRadius.circular(9),
-            border: Border.all(
-              color: isSelected ? accentColor.withValues(alpha: 0.35) : Colors.transparent,
-            ),
-          ),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(icon, size: 13, color: isSelected ? accentColor : Colors.white24),
-                  const SizedBox(width: 6),
-                  Text(
-                    label,
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: isSelected ? Colors.white : Colors.white38,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: GoogleFonts.inter(
-                  fontSize: 10,
-                  color: isSelected ? accentColor.withValues(alpha: 0.8) : Colors.white12,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   // ════════════════════════════════════════════════════════════════════
   //  TAB BAR
   // ════════════════════════════════════════════════════════════════════
@@ -727,7 +608,7 @@ class _StudyToolsPanelState extends State<StudyToolsPanel>
           ),
           const SizedBox(height: 12),
           Text(
-            'Paste your free Gemini API key to unlock Summary, Viva Q&A, and Active Recall. Stored only in your browser.',
+            'Paste your free Groq API key to unlock Summary, Viva Q&A, and Active Recall. Stored only in your browser.',
             style: GoogleFonts.inter(
                 fontSize: 12, color: Colors.white.withValues(alpha: 0.45), height: 1.6),
           ),
@@ -737,7 +618,7 @@ class _StudyToolsPanelState extends State<StudyToolsPanel>
             obscureText: true,
             style: const TextStyle(fontSize: 13, color: Colors.white),
             decoration: InputDecoration(
-              hintText: 'AIza...',
+              hintText: 'gsk_...',
               hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.2)),
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               suffixIcon: IconButton(
@@ -755,9 +636,9 @@ class _StudyToolsPanelState extends State<StudyToolsPanel>
           ),
           const SizedBox(height: 14),
           TextButton.icon(
-            onPressed: () => launchUrl(Uri.parse('https://aistudio.google.com/apikey')),
+            onPressed: () => launchUrl(Uri.parse('https://console.groq.com/keys')),
             icon: const Icon(Icons.open_in_new_rounded, size: 13),
-            label: const Text('Get a free key at Google AI Studio →'),
+            label: const Text('Get a free key at Groq Console →'),
             style: TextButton.styleFrom(
               foregroundColor: const Color(0xFF00D9FF),
               textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),

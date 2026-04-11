@@ -1,7 +1,5 @@
 import '../services/focus_service.dart';
 
-enum AiProvider { gemini, groq }
-
 /// Simple DTO for Active Recall questions.
 class RecallQuestion {
   final String question;
@@ -45,7 +43,6 @@ class ReaderState {
   final bool isListening;
   final bool isSprintActive;
   final int sprintTimeRemaining;
-  final AiProvider aiProvider;
 
   const ReaderState({
     this.words = const [],
@@ -73,7 +70,6 @@ class ReaderState {
     this.isListening = false,
     this.isSprintActive = false,
     this.sprintTimeRemaining = 1500,
-    this.aiProvider = AiProvider.gemini,
   });
 
   ReaderState copyWith({
@@ -102,7 +98,6 @@ class ReaderState {
     bool? isListening,
     bool? isSprintActive,
     int? sprintTimeRemaining,
-    AiProvider? aiProvider,
     bool clearSummary = false,
     bool clearVivaQuestions = false,
     bool clearAiError = false,
@@ -134,7 +129,6 @@ class ReaderState {
       isListening: isListening ?? this.isListening,
       isSprintActive: isSprintActive ?? this.isSprintActive,
       sprintTimeRemaining: sprintTimeRemaining ?? this.sprintTimeRemaining,
-      aiProvider: aiProvider ?? this.aiProvider,
     );
   }
 
