@@ -95,7 +95,7 @@ class _DeveloperOverlayState extends State<DeveloperOverlay> {
                           style: GoogleFonts.outfit(fontSize: 28, fontWeight: FontWeight.w700, letterSpacing: -0.5),
                         ),
                         Text(
-                          'B.Tech IT • Academic Excellence',
+                          "B.Tech IT • MediCaps'29",
                           style: TextStyle(color: isDark ? Colors.white54 : Colors.black54, fontSize: 13, fontWeight: FontWeight.w500),
                         ),
                         
