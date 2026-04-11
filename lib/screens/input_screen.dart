@@ -301,7 +301,7 @@ class _InputScreenState extends State<InputScreen> {
         Text(state.fileName ?? 'Pasted Content', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18)),
         const SizedBox(height: 4),
         Text(
-          '${state.totalWords} words • ~${state.estimatedTimeFormatted} read',
+          '${state.totalWords} words • ~${state.estimatedRemainingTimeFormatted} read',
           style: TextStyle(color: isDark ? Colors.white38 : Colors.black38, fontSize: 13),
         ),
       ],

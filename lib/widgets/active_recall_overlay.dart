@@ -72,9 +72,9 @@ class ActiveRecallOverlay extends StatelessWidget {
               ...state.recallOptions!.asMap().entries.map((entry) {
                 final idx = entry.key;
                 final opt = entry.value;
-                final isSelected = state.recallSelectedIndex == idx;
+                final isSelected = state.selectedRecallIndex == idx;
                 final isCorrect = state.recallCorrectIndex == idx;
-                final showResult = state.recallSelectedIndex != null;
+                final showResult = state.selectedRecallIndex != null;
 
                 Color color = isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03);
                 if (showResult) {
@@ -99,7 +99,7 @@ class ActiveRecallOverlay extends StatelessWidget {
             ],
           ),
         ),
-        if (state.recallSelectedIndex != null) ...[
+        if (state.selectedRecallIndex != null) ...[
           const SizedBox(height: 32),
           AppleButton(
             label: 'Continue Reading',

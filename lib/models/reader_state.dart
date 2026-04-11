@@ -172,8 +172,9 @@ class ReaderState {
     return '${minutes.toString().padLeft(2, "0")}:${seconds.toString().padLeft(2, "0")}';
   }
 
-  String get estimatedTimeFormatted {
+  String get estimatedRemainingTimeFormatted {
     final remainingWords = words.length - currentIndex;
+    if (remainingWords <= 0) return '0 min';
     final totalSeconds = (remainingWords / wpm * 60).round();
     final minutes = totalSeconds ~/ 60;
     if (minutes < 1) return '< 1 min';
