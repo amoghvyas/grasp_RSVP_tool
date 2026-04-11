@@ -137,7 +137,15 @@ class _InputScreenState extends State<InputScreen> {
                   ],
                   
                   const SizedBox(height: 80),
-                  _buildFooter(isDark),
+                   AppleButton(
+                    label: 'Meet the Developer',
+                    isPrimary: false,
+                    onPressed: () => showDialog(
+                      context: context,
+                      builder: (context) => const DeveloperOverlay(),
+                    ),
+                  ),
+                  const SizedBox(height: 48),
                 ],
               ),
             ),
@@ -310,27 +318,6 @@ class _InputScreenState extends State<InputScreen> {
   }
 
 
-  Widget _buildFooter(bool isDark) {
-    return Column(
-      children: [
-        GestureDetector(
-          onTap: () => showDialog(
-            context: context,
-            builder: (context) => const DeveloperOverlay(),
-          ),
-          child: Text(
-            'Meet the Developer 🤝',
-            style: GoogleFonts.outfit(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: isDark ? Colors.white24 : Colors.black12,
-              letterSpacing: 0.5,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildThemeToggle(bool isDark) {
     return FloatingActionButton(
