@@ -86,7 +86,7 @@ class ActiveRecallOverlay extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 10),
                   child: AppleCard(
                     padding: const EdgeInsets.all(16),
-                    onTap: showResult ? null : () => provider.answerRecall(idx),
+                    onTap: showResult ? null : () => provider.submitRecallAnswer(idx),
                     child: Row(
                       children: [
                         Expanded(child: Text(opt, style: const TextStyle(fontSize: 14))),

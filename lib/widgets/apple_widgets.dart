@@ -50,6 +50,7 @@ class AppleButton extends StatefulWidget {
   final bool isLoading;
   final bool isPrimary;
   final IconData? icon;
+  final double? width;
 
   const AppleButton({
     super.key,
@@ -58,6 +59,7 @@ class AppleButton extends StatefulWidget {
     this.isLoading = false,
     this.isPrimary = true,
     this.icon,
+    this.width,
   });
 
   @override
@@ -96,6 +98,7 @@ class _AppleButtonState extends State<AppleButton> with SingleTickerProviderStat
         child: ScaleTransition(
           scale: _scale,
           child: Container(
+            width: widget.width,
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
             decoration: BoxDecoration(
               color: widget.isPrimary ? primaryColor : (isDark ? Colors.white10 : const Color(0xFFF2F2F7)),
