@@ -253,18 +253,43 @@ class ReaderProvider extends ChangeNotifier {
   Future<void> _preGenerateRecallQuestions(String text) async {
     if (text.isEmpty || !_groqService.isInitialized) return;
     try {
-      final questions = await _groqService.generateRecallQuestions(text);
+      final questions = await _groqService.generateRecallQuestions(
+        text,
+        count: _state.recallCount,
+        difficulty: _state.recallDifficulty,
+      );
       _state = _state.copyWith(preGeneratedRecalls: questions);
       
-      // Scholarly Interval Calculation: Ensure 5 triggers throughout the total word count
+      // Scholarly Interval Calculation: Ensure triggers throughout the total word count
       if (_state.totalWords > 50) {
-        final interval = (_state.totalWords / 6).round(); 
-        _state = _state.copyWith(recallInterval: interval.clamp(50, 500));
+        final divisor = _state.recallCount + 1;
+        final interval = (_state.totalWords / divisor).round(); 
+        _state = _state.copyWith(recallInterval: interval.clamp(30, 800));
       }
       notifyListeners();
     } catch (e) {
       // Background failure ignored
     }
+  }
+
+  void updateRecallSettings({int? count, String? difficulty}) {
+    _state = _state.copyWith(
+      recallCount: count,
+      recallDifficulty: difficulty,
+      preGeneratedRecalls: null,
+      recallTriggeredIndices: {},
+    );
+    notifyListeners();
+    if (_state.rawText.isNotEmpty) {
+      _preGenerateRecallQuestions(_state.rawText);
+    }
+  }
+
+  void dismissAnnouncement(String id) {
+    final Map<String, DateTime> shown = Map.from(_state.shownAnnouncements);
+    shown[id] = DateTime.now();
+    _state = _state.copyWith(shownAnnouncements: shown);
+    notifyListeners();
   }
 
   Future<void> _triggerActiveRecall() async {
@@ -283,10 +308,9 @@ class ReaderProvider extends ChangeNotifier {
     }
 
     if (questionIndex == null) {
-      // No new questions or not pre-generated yet, fall back to old behavior?
-      // Actually, user said only 5. If we've shown 5, we stop.
-      if (_state.recallTriggeredIndices.length >= 5) {
-        play(); // Resume if no more questions
+      // Scholarly Limiter: Only show up to the user-selected recapCount
+      if (_state.recallTriggeredIndices.length >= _state.recallCount) {
+        play(); 
         return;
       }
       

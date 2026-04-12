@@ -81,10 +81,10 @@ class GroqService {
     return _request('Text: $text', systemPrompt: systemPrompt);
   }
 
-  Future<List<RecallQuestion>> generateRecallQuestions(String context) async {
+  Future<List<RecallQuestion>> generateRecallQuestions(String context, {int count = 5, String difficulty = 'Intermediate'}) async {
     final response = await _request(
       'Text context: $context',
-      systemPrompt: 'You are a mastery teacher. Generate exactly 5 distinct conceptual MCQs covering the main concepts of the entire text. Output ONLY a valid JSON array of objects like this: [{"question": "...", "options": ["A", "B", "C", "D"], "correctIndex": 0}]'
+      systemPrompt: 'You are a mastery teacher. Generate exactly $count distinct conceptual MCQs with $difficulty difficulty covering the main concepts of the entire text. Output ONLY a valid JSON array of objects like this: [{"question": "...", "options": ["A", "B", "C", "D"], "correctIndex": 0}]'
     );
 
     try {
@@ -95,13 +95,13 @@ class GroqService {
       final jsonStr = response.substring(startIndex, endIndex);
       final List data = jsonDecode(jsonStr);
       
-      return data.take(5).map((json) => RecallQuestion(
+      return data.take(count).map((json) => RecallQuestion(
         question: json['question'] ?? 'Missing Question?',
         options: List<String>.from(json['options'] ?? []),
         correctIndex: json['correctIndex'] ?? 0,
       )).toList();
     } catch (e) {
-      return List.generate(5, (i) => RecallQuestion(
+      return List.generate(count, (i) => RecallQuestion(
         question: 'What is a key takeaway from this section of the text? (Question ${i+1})',
         options: ['Key concept A', 'Key concept B', 'Key concept C', 'Key concept D'],
         correctIndex: 0,

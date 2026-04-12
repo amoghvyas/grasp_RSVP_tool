@@ -24,7 +24,7 @@ class _StudyToolsPanelState extends State<StudyToolsPanel> with SingleTickerProv
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
   }
 
   @override
@@ -89,17 +89,17 @@ class _StudyToolsPanelState extends State<StudyToolsPanel> with SingleTickerProv
       labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
       tabs: const [
         Tab(text: 'Summary'),
-        Tab(text: 'Viva Q&A'),
-        Tab(text: 'MCQ Quiz'),
+        Tab(text: 'Viva'),
+        Tab(text: 'MCQ'),
+        Tab(text: 'Recap'),
       ],
     );
   }
 
   Widget _buildBody(ReaderProvider provider, ReaderState state, bool isDark) {
     switch (_tabController.index) {
-      case 0: return _buildSummaryView(provider, state, isDark);
-      case 1: return _buildVivaView(provider, state, isDark);
       case 2: return _buildQuizView(provider, state, isDark);
+      case 3: return _buildRecapSettingsView(provider, state, isDark);
       default: return const SizedBox();
     }
   }
@@ -152,41 +152,102 @@ class _StudyToolsPanelState extends State<StudyToolsPanel> with SingleTickerProv
     );
   }
 
-  Widget _buildQuizView(ReaderProvider provider, ReaderState state, bool isDark) {
+  Widget _buildRecapSettingsView(ReaderProvider provider, ReaderState state, bool isDark) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Questions: ${_quizCount.toInt()}', style: TextStyle(fontSize: 12, color: isDark ? Colors.white38 : Colors.black38)),
-                  Slider(
-                    value: _quizCount,
-                    min: 3,
-                    max: 20,
-                    divisions: 17,
-                    onChanged: (v) => setState(() => _quizCount = v),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 16),
-            _buildDifficultyDropdown(isDark),
-          ],
+        Text(
+          'CALIBRATE RECALL INTENSITY',
+          style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1.5, color: isDark ? Colors.white30 : Colors.black26),
         ),
         const SizedBox(height: 20),
-        AppleButton(
-          label: 'Start MCQ Quiz',
-          isLoading: state.isQuizLoading,
-          onPressed: () => provider.generateInteractiveQuiz(_quizCount.toInt(), _quizDifficulty),
-          width: double.infinity,
+        
+        // Intensity Selector
+        _buildRecapOption(
+          label: 'Mastery Checkpoints',
+          currentValue: state.recallCount.toString(),
+          options: ['3', '5', '10'],
+          onSelected: (val) => provider.updateRecallSettings(count: int.parse(val)),
+          isDark: isDark,
         ),
-        if (state.quizzes != null) ...[
-          const SizedBox(height: 24),
-          ...state.quizzes!.asMap().entries.map((e) => _buildQuizCard(e.key, e.value, provider, isDark)),
-        ],
+        const SizedBox(height: 16),
+        _buildRecapOption(
+          label: 'Scholarly Depth',
+          currentValue: state.recallDifficulty,
+          options: ['Recall', 'Intermediate', 'Analysis'],
+          onSelected: (val) => provider.updateRecallSettings(difficulty: val),
+          isDark: isDark,
+        ),
+        
+        const SizedBox(height: 32),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: (isDark ? const Color(0xFF00A2FF) : const Color(0xFF0071E3)).withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: (isDark ? const Color(0xFF00A2FF) : const Color(0xFF0071E3)).withValues(alpha: 0.1)),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.tips_and_updates_rounded, size: 16, color: isDark ? const Color(0xFF00A2FF) : const Color(0xFF0071E3)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Grasp will now generate ${state.recallCount} checkpoints with ${state.recallDifficulty} depth across your text.',
+                  style: TextStyle(fontSize: 12, color: isDark ? Colors.white60 : Colors.black54),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRecapOption({
+    required String label,
+    required String currentValue,
+    required List<String> options,
+    required Function(String) onSelected,
+    required bool isDark,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 12),
+        Row(
+          children: options.map((opt) {
+            final isSelected = currentValue == opt;
+            return Expanded(
+              child: GestureDetector(
+                onTap: () => onSelected(opt),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  margin: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  decoration: BoxDecoration(
+                    color: isSelected 
+                      ? (isDark ? const Color(0xFF00A2FF) : const Color(0xFF0071E3)) 
+                      : (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.02)),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: isSelected ? Colors.transparent : (isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.03))),
+                  ),
+                  child: Center(
+                    child: Text(
+                      opt,
+                      style: TextStyle(
+                        fontSize: 12, 
+                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                        color: isSelected ? Colors.white : (isDark ? Colors.white54 : Colors.black54),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
       ],
     );
   }

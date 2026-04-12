@@ -1,11 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!--
-    Base href is set by Flutter's --base-href build argument.
-    For custom domain hosting (e.g., yourname.me): use "/"
-    For GitHub Pages project site: use "/repo-name/"
-  -->
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
@@ -16,7 +11,6 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://www.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.groq.com https://api.emailjs.com https://r.jina.ai https://www.gstatic.com https://fonts.gstatic.com https://raw.githubusercontent.com https://github.githubassets.com https://cdn-icons-png.flaticon.com;">
   <meta name="referrer" content="no-referrer">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
-  <meta http-equiv="X-XSS-Protection" content="1; mode=block">
 
   <!-- SEO Meta Tags -->
   <title>Grasp Scholarly — Autonomous Vision AI & High-Speed Research</title>
@@ -24,12 +18,6 @@
   <meta name="description" content="Grasp Scholarly is a premium, AI-powered RSVP environment. Transcribe handwritten notes via Vision OCR, read at 1000 WPM, and generate LPU-accelerated study synthetics instantly.">
   <meta name="keywords" content="RSVP, scholarly tool, vision OCR, speed reading, Groq LPU, academic research, study tool, student focus">
   <meta name="author" content="Amogh Vyas">
-
-  <!-- Open Graph / Social Sharing -->
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="Grasp Scholarly">
-  <meta property="og:description" content="Autonomous Vision AI & High-Speed Research Suite. Read handwritten notes and scanned PDFs at the speed of thought.">
-  <meta property="og:image" content="icons/Icon-512.png">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
@@ -39,44 +27,124 @@
   <meta name="theme-color" content="#1C1C1E">
   <link rel="manifest" href="manifest.json">
 
-  <!-- Preconnect to Google Fonts for faster loading -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <style>
+    body {
+      background-color: #000000;
+      margin: 0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    #loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: opacity 0.5s ease-out;
+    }
+    .logo-container {
+      width: 100px;
+      height: 100px;
+      position: relative;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .loader {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border: 2px solid rgba(255, 255, 255, 0.05);
+      border-top: 2px solid #00A2FF;
+      border-radius: 50%;
+      animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+    }
+    .logo-center {
+      color: white;
+      font-size: 32px;
+      font-weight: 900;
+      letter-spacing: -2px;
+      animation: heartbeat 2s ease-in-out infinite;
+    }
+    .loading-text {
+      color: rgba(255, 255, 255, 0.4);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .shimmer {
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      background-size: 200% 100%;
+      animation: shimmer 2s infinite;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes heartbeat {
+      0%, 100% { transform: scale(1); opacity: 0.8; }
+      50% { transform: scale(1.05); opacity: 1; }
+    }
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    .fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+  </style>
 </head>
 <body>
+  <div id="loading-container">
+    <div class="logo-container">
+      <div class="loader"></div>
+      <div class="logo-center">G</div>
+    </div>
+    <div class="loading-text shimmer">Grasp Scholarly</div>
+  </div>
+
   <script>
-    let deferredPrompt;
+    // Force the use of the HTML renderer for significantly faster initial load.
+    // This avoids downloading the heavy CanvasKit engine (~2.5MB), reducing startup time.
+    window.flutterWebRenderer = 'html';
 
-    window.addEventListener('beforeinstallprompt', (e) => {
-      // Prevent the mini-infobar from appearing on mobile
-      e.preventDefault();
-      // Stash the event so it can be triggered later
-      deferredPrompt = e;
-      
-      // Notify Flutter that the app is installable
-      // We'll poll this from Dart or use a custom event
-      window.isPWAInstallable = true;
-    });
-
-    window.promptInstall = async () => {
-      if (!deferredPrompt) {
-        console.log('Installation not available or already installed.');
+    // The newer Flutter Web initialization logic
+    window.addEventListener('load', function(ev) {
+      if (typeof _flutter === 'undefined') {
+        // Fallback for older builds or unexpected loading states
         return;
       }
       
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      console.log(`User response to install: ${outcome}`);
-      
-      if (outcome === 'accepted') {
-        deferredPrompt = null;
-        window.isPWAInstallable = false;
-      }
-    };
-
-    // Initialize as false
-    window.isPWAInstallable = false;
+      _flutter.loader.loadEntrypoint({
+        onEntrypointLoaded: async function(engineInitializer) {
+          const appRunner = await engineInitializer.initializeEngine({
+             renderer: 'html',
+             useColorEmoji: true
+          });
+          
+          await appRunner.runApp();
+          
+          // Smoothly remove the splash screen once the app is running
+          const loading = document.getElementById('loading-container');
+          if (loading) {
+            loading.style.opacity = '0';
+            setTimeout(() => loading.remove(), 500);
+          }
+        }
+      });
+    });
   </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
+

@@ -121,7 +121,7 @@ class _DeveloperOverlayState extends State<DeveloperOverlay> {
                           controller: _messageController,
                           maxLines: 4,
                           decoration: InputDecoration(
-                            hintText: 'Drop a hi or suggest a new feature...',
+                            hintText: 'Drop a hi or suggest a new feature... (Kindly include your name/email for acknowledgement)',
                             filled: true,
                             fillColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.02),
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
@@ -182,12 +182,17 @@ class _DeveloperOverlayState extends State<DeveloperOverlay> {
           shape: BoxShape.circle,
           border: Border.all(color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.03)),
         ),
-        child: ColorFiltered(
-          colorFilter: ColorFilter.mode(
-            isDark ? Colors.white : Colors.black,
-            BlendMode.srcIn,
+        child: Image.network(
+          logoUrl, 
+          width: 22, 
+          height: 22,
+          color: isDark ? Colors.white : Colors.black,
+          colorBlendMode: BlendMode.srcIn,
+          errorBuilder: (context, error, stackTrace) => Icon(
+            url.contains('github') ? Icons.code : Icons.link,
+            size: 18,
+            color: isDark ? Colors.white54 : Colors.black54,
           ),
-          child: Image.network(logoUrl, width: 22, height: 22),
         ),
       ),
     );

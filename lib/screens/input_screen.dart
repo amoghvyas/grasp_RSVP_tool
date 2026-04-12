@@ -11,6 +11,7 @@ import '../widgets/apple_widgets.dart';
 import '../widgets/developer_overlay.dart';
 import '../widgets/dropzone_widget.dart';
 import '../widgets/focus_tools_overlay.dart';
+import '../widgets/gratitude_announcement.dart';
 import '../widgets/study_tools_panel.dart';
 import '../widgets/welcome_guide_panel.dart';
 
@@ -113,7 +114,9 @@ class _InputScreenState extends State<InputScreen> {
                   child: Column(
                     children: [
                       _buildHeader(isDark),
-                      const SizedBox(height: 60),
+                      const SizedBox(height: 32),
+                      const GratitudeAnnouncement(),
+                      const SizedBox(height: 32),
                       WelcomeGuidePanel(),
                       const SizedBox(height: 48),
                       
