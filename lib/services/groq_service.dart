@@ -50,7 +50,7 @@ class GroqService {
           ],
           'temperature': 0.7,
         }),
-      );
+      ).timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -222,7 +222,7 @@ class GroqService {
           ],
           'temperature': 0.1,
         }),
-      );
+      ).timeout(const Duration(seconds: 45));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);

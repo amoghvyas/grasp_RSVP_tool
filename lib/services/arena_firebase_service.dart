@@ -34,6 +34,12 @@ class ArenaFirebaseService {
     await _roomRef(roomId).update({'documentTitle': newTopic});
   }
 
+  Future<void> updateRoomQuestions(String roomId, List<InteractiveQuiz> questions) async {
+    await _roomRef(roomId).update({
+      'questions': questions.map((q) => q.toMap()).toList(),
+    });
+  }
+
   Future<void> joinRoom(String roomId, ArenaPlayer player) async {
     await _roomRef(roomId).child('players').child(player.id).set(player.toMap());
   }

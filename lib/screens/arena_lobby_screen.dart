@@ -129,6 +129,28 @@ class ArenaLobbyScreen extends StatelessWidget {
                     ),
                 ],
               ),
+              if (room.questions.isEmpty) ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.amber.withValues(alpha: 0.2)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.amber))),
+                      const SizedBox(width: 12),
+                      Text(
+                        'AI is synthesizing your competition package...',
+                        style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.amber[800]),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -209,8 +231,8 @@ class ArenaLobbyScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           AppleButton(
-            label: isHost ? 'Start Competition' : 'Waiting for Launch...',
-            onPressed: isHost && room.players.length > 0
+            label: isHost ? (room.questions.isEmpty ? 'Preparing Questions...' : 'Start Competition') : 'Waiting for Launch...',
+            onPressed: isHost && room.players.length > 0 && room.questions.isNotEmpty
               ? () {
                   arena.startCompetition();
                   Navigator.pushReplacement(

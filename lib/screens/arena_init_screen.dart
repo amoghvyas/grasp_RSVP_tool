@@ -43,18 +43,14 @@ class _ArenaInitScreenState extends State<ArenaInitScreen> with SingleTickerProv
     final groq = context.read<ReaderProvider>().groq;
 
     try {
-      setState(() => _status = 'AI is generating high-fidelity questions...');
-      final id = await arena.hostCompetition(widget.title, widget.content, groq);
+      // Direct Optimistic Handshake
+      final id = await arena.hostCompetitionOptimistic(widget.title, widget.content, groq);
       
       if (mounted) {
-        setState(() => _status = 'Synchronizing scholarly handshake...');
-        await Future.delayed(const Duration(milliseconds: 500));
-        if (mounted) {
-          Navigator.pushReplacement(
-            context, 
-            MaterialPageRoute(builder: (_) => ArenaLobbyScreen(roomId: id)),
-          );
-        }
+        Navigator.pushReplacement(
+          context, 
+          MaterialPageRoute(builder: (_) => ArenaLobbyScreen(roomId: id)),
+        );
       }
     } catch (e) {
       if (mounted) {
