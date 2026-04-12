@@ -50,6 +50,9 @@ app.*.map.json
 secrets.dart
 **/secrets/
 api_key.txt
+lib/firebase_options.dart
+firebase.json
+.firebaserc
 
 # ── OS generated files ────────────────────────────────────
 Thumbs.db
