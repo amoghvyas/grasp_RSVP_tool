@@ -61,7 +61,7 @@ class _AnimatedPillState extends State<_AnimatedPill> with SingleTickerProviderS
     );
 
     _slideAnimation = Tween<double>(begin: -80.0, end: 0.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.outBack),
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
     );
 
     _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
