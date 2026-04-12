@@ -70,14 +70,26 @@ class ArenaEntranceWidget extends StatelessWidget {
                   icon: Icons.hub_rounded,
                   onPressed: reader.state.hasContent 
                     ? () => _showRules(context, () async {
-                      final groq = context.read<ReaderProvider>().groq;
-                      final id = await arena.hostCompetition(
-                        reader.state.fileName ?? 'Pasted Content', 
-                        reader.state.rawText,
-                        groq
-                      );
-                       if (context.mounted) {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => ArenaLobbyScreen(roomId: id)));
+                      try {
+                        final groq = context.read<ReaderProvider>().groq;
+                        final id = await arena.hostCompetition(
+                          reader.state.fileName ?? 'Pasted Content', 
+                          reader.state.rawText,
+                          groq
+                        );
+                         if (context.mounted) {
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => ArenaLobbyScreen(roomId: id)));
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Arena Error: $e'),
+                              backgroundColor: Colors.redAccent,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        }
                       }
                     })
                     : null,
@@ -230,10 +242,18 @@ class _JoinArenaDialogState extends State<_JoinArenaDialog> {
               AppleButton(
                 label: 'Join Competition',
                 onPressed: () async {
-                  await arena.joinCompetition(_codeController.text, _nameController.text);
-                  if (context.mounted && arena.error == null) {
-                    Navigator.pop(context);
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => ArenaLobbyScreen(roomId: _codeController.text)));
+                  try {
+                    await arena.joinCompetition(_codeController.text, _nameController.text);
+                    if (context.mounted && arena.error == null) {
+                      Navigator.pop(context);
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => ArenaLobbyScreen(roomId: _codeController.text)));
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Join Error: $e'), backgroundColor: Colors.redAccent),
+                      );
+                    }
                   }
                 },
                 width: double.infinity,

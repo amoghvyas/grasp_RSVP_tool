@@ -4,12 +4,18 @@ import 'package:firebase_database/firebase_database.dart';
 import '../models/arena_model.dart';
 
 class ArenaFirebaseService {
-  final FirebaseDatabase _db = FirebaseDatabase.instance;
-  
   // Singleton pattern for Scholarly reliability
   static final ArenaFirebaseService _instance = ArenaFirebaseService._internal();
   factory ArenaFirebaseService() => _instance;
   ArenaFirebaseService._internal();
+
+  FirebaseDatabase get _db {
+    try {
+      return FirebaseDatabase.instance;
+    } catch (e) {
+      throw 'Firebase not initialized. Please ensure your Scholarly Secrets (FB_ defines) are correctly set up in GitHub.';
+    }
+  }
 
   DatabaseReference _roomRef(String roomId) => _db.ref('arena_rooms/$roomId');
 

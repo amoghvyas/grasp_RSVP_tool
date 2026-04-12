@@ -98,42 +98,45 @@ class _AnimatedPillState extends State<_AnimatedPill> with SingleTickerProviderS
           child: child,
         ),
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: Center(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(40),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                decoration: BoxDecoration(
-                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(40),
-                  border: Border.all(
+      child: IgnorePointer(
+        ignoring: true, // Crucial: Allows clicks to pass through to the UI below
+        child: Material(
+          color: Colors.transparent,
+          child: Center(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(40),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  decoration: BoxDecoration(
                     color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
+                    borderRadius: BorderRadius.circular(40),
+                    border: Border.all(
+                      color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1),
                     ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      widget.message,
-                      style: GoogleFonts.outfit(
-                        color: isDark ? Colors.white : Colors.black,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: -0.2,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        widget.message,
+                        style: GoogleFonts.outfit(
+                          color: isDark ? Colors.white : Colors.black,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
