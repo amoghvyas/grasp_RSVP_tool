@@ -27,6 +27,7 @@ class InputScreen extends StatefulWidget {
 class _InputScreenState extends State<InputScreen> {
   final _textController = TextEditingController();
   final _urlController = TextEditingController();
+  final _arenaKey = GlobalKey(); // GlobalKey for surgical smooth-scrolling
   String? _errorMessage;
   bool _isLoading = false;
   bool _isInstallable = false;
@@ -160,6 +161,7 @@ class _InputScreenState extends State<InputScreen> {
                       ],
                       
                       const ArenaEntranceWidget(),
+                      SizedBox(key: _arenaKey, height: 1), // Invisible anchor for scrolling
                       
                       const SizedBox(height: 48),
                        AppleButton(
@@ -178,12 +180,52 @@ class _InputScreenState extends State<InputScreen> {
             ),
           ),
 
-          // Focus Tools Trigger
+          // Command Bar (Arena Shortcut + Focus Tools)
           Positioned(
             top: 24,
             right: 24,
             child: SafeArea(
-              child: AnimatedContainer(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Arena Shortcut Pill
+                  GestureDetector(
+                    onTap: () => Scrollable.ensureVisible(_arenaKey.currentContext!, duration: const Duration(milliseconds: 800), curve: Curves.easeInOutExpo),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 500),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: const Color(0xFF0071E3).withValues(alpha: 0.2)),
+                        boxShadow: _isGlowActive ? [
+                          BoxShadow(
+                            color: const Color(0xFF0071E3).withValues(alpha: 0.1),
+                            blurRadius: 10,
+                          )
+                        ] : [],
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.hub_rounded, size: 14, color: Color(0xFF0071E3)),
+                          const SizedBox(width: 8),
+                          Text(
+                            'ARENA', 
+                            style: GoogleFonts.outfit(
+                              fontSize: 10, 
+                              fontWeight: FontWeight.w800, 
+                              letterSpacing: 1.5,
+                              color: const Color(0xFF0071E3),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  
+                  // Focus Tools Trigger
+                  AnimatedContainer(
                 duration: const Duration(milliseconds: 500),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
@@ -208,13 +250,15 @@ class _InputScreenState extends State<InputScreen> {
                   ),
                 ),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
-      floatingActionButton: _buildThemeToggle(isDark),
-    );
-  }
+    ],
+  ),
+  floatingActionButton: _buildThemeToggle(isDark),
+);
+}
 
   Widget _buildHeader(bool isDark) {
     return Column(

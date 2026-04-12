@@ -1,7 +1,12 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+
+// Note: To finalize production sync, you must run `flutterfire configure` 
+// and import 'firebase_options.dart' here.
+// import 'firebase_options.dart';
 
 import 'providers/arena_provider.dart';
 import 'providers/reader_provider.dart';
@@ -12,8 +17,19 @@ import 'widgets/greeting_notification.dart';
 
 const _groqApiKey = String.fromEnvironment('GROQ_API_KEY', defaultValue: '');
 
-void main() {
-  // Security: Suppress all console telemetry in production to prevent WebTool leakage
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // High-Fidelity Firebase Handshake
+  try {
+    // If you have firebase_options.dart, replace null with DefaultFirebaseOptions.currentPlatform
+    await Firebase.initializeApp(
+      options: null, 
+    );
+  } catch (e) {
+    debugPrint('[SCHOLARLY WARN] Firebase initialization skipped or incomplete: $e');
+  }
+
   if (kReleaseMode) {
     debugPrint = (String? message, {int? wrapWidth}) {};
   }

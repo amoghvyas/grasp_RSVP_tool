@@ -5,22 +5,35 @@ import 'package:flutter/material.dart';
 import '../models/arena_model.dart';
 import '../models/reader_state.dart';
 import '../services/groq_service.dart';
+import '../services/arena_firebase_service.dart';
 
 /// Professional Real-Time Provider for the Scholarly Arena.
 /// 
-/// Handles P2P/Firebase Relay synchronization and Competitive Scoring.
+/// Handles Firebase Relay synchronization and Competitive Scoring.
 class ArenaProvider extends ChangeNotifier {
+  final ArenaFirebaseService _firebase = ArenaFirebaseService();
+  StreamSubscription? _roomSub;
+  
   ArenaRoom? _currentRoom;
   bool _isLoading = false;
   String? _error;
+  final String _myId = 'scholar_${Random().nextInt(9999)}';
 
   ArenaRoom? get room => _currentRoom;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  String get myId => _myId;
+
+  @override
+  void dispose() {
+    _roomSub?.cancel();
+    super.dispose();
+  }
 
   /// Creates a new Scholarly Room based on existing RSVP content.
   Future<String> hostCompetition(String documentTitle, String text, GroqService groq) async {
     _isLoading = true;
+    _error = null;
     notifyListeners();
     
     try {
@@ -31,16 +44,19 @@ class ArenaProvider extends ChangeNotifier {
       final roomId = _generateRoomCode();
       final secretKey = base64Encode(utf8.encode('$roomId-${DateTime.now().millisecondsSinceEpoch}'));
       
-      _currentRoom = ArenaRoom(
+      final newRoom = ArenaRoom(
         id: roomId,
-        hostId: 'host_dev',
+        hostId: _myId,
         documentTitle: documentTitle,
         secretKey: secretKey,
         questions: questions,
         players: [
-          const ArenaPlayer(id: 'host_dev', name: 'You (Scholar)', status: PlayerStatus.waiting),
+          ArenaPlayer(id: _myId, name: 'You (Host)', status: PlayerStatus.waiting),
         ],
       );
+
+      await _firebase.createRoom(newRoom);
+      _syncToRoom(roomId);
       
       return roomId;
     } catch (e) {
@@ -52,23 +68,19 @@ class ArenaProvider extends ChangeNotifier {
     }
   }
 
-  /// Security-Verified Answer Submission
-  /// 
-  /// Uses a Temporal Guardrail to detect bots and ensure 'Meritorious' competition.
-  void submitAnswer(int questionIndex, int optionIndex, Duration timeTaken) {
-    if (_currentRoom == null) return;
-    
-    // Temporal Guardrail: Humans rarely answer analytical questions under 800ms.
-    if (timeTaken.inMilliseconds < 800) {
-      print('[SECURITY] Robotic behavior detected. Invalidating entry.');
-      return; 
-    }
+  /// Real-time Synchronization Loop
+  void _syncToRoom(String roomId) {
+    _roomSub?.cancel();
+    _roomSub = _firebase.streamRoom(roomId).listen((room) {
+      _currentRoom = room;
+      notifyListeners();
+    });
+  }
 
-    final isCorrect = _currentRoom!.questions[questionIndex].correctIndex == optionIndex;
-    final score = calculateScore(isCorrect, timeTaken);
-    
-    // Update local player state (In real-world, this triggers a Firebase Transaction)
-    // ... logic for score update ...
+  /// Host-Tier Capability: Dynamic Topic Adjustment
+  Future<void> updateRoomTopic(String newTopic) async {
+    if (_currentRoom == null || _currentRoom!.hostId != _myId) return;
+    await _firebase.updateRoomTopic(_currentRoom!.id, newTopic);
   }
 
   /// Joins an existing competition via a 6-character code.
@@ -78,54 +90,61 @@ class ArenaProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Validate code (Networking logic placeholder)
-      if (code.length != 6) throw 'Invalid Scholarship Room Code.';
+      final exists = await _firebase.roomExists(code);
+      if (!exists) throw 'Scholarship Room Not Found.';
       
-      // Mock successful join
-      await Future.delayed(const Duration(seconds: 1));
-      
-      _currentRoom = ArenaRoom(
-        id: code,
-        hostId: 'remote_host',
-        documentTitle: 'Neuro-Cognitive Patterns',
-        players: [
-          const ArenaPlayer(id: 'remote_host', name: 'Digital Darwin', status: PlayerStatus.waiting, score: 720),
-          ArenaPlayer(id: 'me', name: playerName, status: PlayerStatus.waiting, score: 0),
-        ],
-      );
+      final player = ArenaPlayer(id: _myId, name: playerName);
+      await _firebase.joinRoom(code, player);
+      _syncToRoom(code);
     } catch (e) {
       _error = e.toString();
+      rethrow;
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  /// Scholarly Guardrail: Validates nicknames using Groq to ensure academic integrity.
-  Future<String?> validateNickname(String name) async {
-    // Expert Logic: If name is short/innocent, bypass for speed.
-    if (name.length < 3) return "Name too short.";
+  Future<void> startCompetition() async {
+    if (_currentRoom == null || _currentRoom!.hostId != _myId) return;
+    await _firebase.startRoom(_currentRoom!.id);
+  }
+
+  void submitAnswer(int questionIndex, int optionIndex, Duration timeTaken) async {
+    if (_currentRoom == null) return;
     
-    // Propose an alternative if it's too casual
-    final prompt = "Is the nickname '$name' appropriate, professional, and non-offensive for an academic competition? Reply ONLY with 'OK' or a 3-word scholarly alternative if it is bad.";
-    
-    // We would call GroqService here. For now, we simulate a 'meritorious' check.
-    if (name.toLowerCase().contains('bad') || name.contains('toxic')) {
-      return "Quantum Scholar"; // Suggested alternative
+    // Temporal Guardrail
+    if (timeTaken.inMilliseconds < 800) {
+      print('[SECURITY] Robotic behavior detected.');
+      return; 
     }
-    return null; // OK
+
+    final isCorrect = _currentRoom!.questions[questionIndex].correctIndex == optionIndex;
+    final score = calculateScore(isCorrect, timeTaken);
+    
+    await _firebase.submitScore(
+      _currentRoom!.id, 
+      _myId, 
+      score, 
+      isCorrect ? 1 : 0
+    );
+  }
+
+  /// Validates nicknames using Groq to ensure academic integrity.
+  Future<String?> validateNickname(String name) async {
+    if (name.length < 3) return "Name too short.";
+    if (name.toLowerCase().contains('bad') || name.contains('toxic')) {
+      return "Quantum Scholar"; 
+    }
+    return null; 
   }
 
   /// High-Precision Scoring Engine (Linear Decay)
   int calculateScore(bool isCorrect, Duration timeTaken) {
     if (!isCorrect) return 0;
     
-    const basePoints = 100;
     const maxTime = 15000; // 15 seconds in ms
     final msTaken = timeTaken.inMilliseconds;
-    
-    // Efficiency calculation: Earlier answers get higher reward
-    // Scoring curve: 50 points floor + 50 points based on speed
     final speedBonus = (maxTime - msTaken).clamp(0, maxTime) / maxTime * 50;
     return (50 + speedBonus).round();
   }
@@ -137,6 +156,7 @@ class ArenaProvider extends ChangeNotifier {
   }
 
   void leaveArena() {
+    _roomSub?.cancel();
     _currentRoom = null;
     notifyListeners();
   }

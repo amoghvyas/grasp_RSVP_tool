@@ -14,11 +14,30 @@ class ArenaLobbyScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+    final arena = context.watch<ArenaProvider>();
+    final room = arena.room;
+
+    // Safety: If room is not loaded yet, show a scholarly loader
+    if (room == null) {
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 24),
+              Text('Entering the Study Hall...', style: GoogleFonts.outfit(fontSize: 18, color: isDark ? Colors.white60 : Colors.black45)),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final isHost = arena.myId == room.hostId;
+
     return Scaffold(
       body: Stack(
         children: [
-          // Background Gradient Animation (Simplified for now)
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -37,24 +56,21 @@ class ArenaLobbyScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildHeader(isDark, context),
+                  _buildHeader(isDark, context, room, arena),
                   const SizedBox(height: 48),
                   
                   Expanded(
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Left Side: Room Info & Invite
                         Expanded(
                           flex: 2,
-                          child: _buildRoomInfo(isDark, context),
+                          child: _buildRoomInfo(isDark, context, arena, room, isHost),
                         ),
                         const SizedBox(width: 40),
-                        
-                        // Right Side: Player List (The "Study Hall")
                         Expanded(
                           flex: 3,
-                          child: _buildPlayerList(isDark),
+                          child: _buildPlayerList(isDark, room, arena.myId),
                         ),
                       ],
                     ),
@@ -68,40 +84,84 @@ class ArenaLobbyScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(bool isDark, BuildContext context) {
+  Widget _buildHeader(bool isDark, BuildContext context, ArenaRoom room, ArenaProvider arena) {
+    final isHost = arena.myId == room.hostId;
+
     return Row(
       children: [
         IconButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            arena.leaveArena();
+            Navigator.pop(context);
+          },
           icon: const Icon(Icons.arrow_back_ios_new_rounded),
         ),
         const SizedBox(width: 16),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'SCHOLARLY ARENA',
-              style: GoogleFonts.outfit(
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 2,
-                color: const Color(0xFF0071E3),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'SCHOLARLY ARENA',
+                style: GoogleFonts.outfit(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 2,
+                  color: const Color(0xFF0071E3),
+                ),
               ),
-            ),
-            Text(
-              'Prepare for Critical Competition',
-              style: GoogleFonts.outfit(
-                fontSize: 32,
-                fontWeight: FontWeight.w700,
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      room.documentTitle,
+                      style: GoogleFonts.outfit(
+                        fontSize: 32,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (isHost)
+                    IconButton(
+                      onPressed: () => _showEditTitleDialog(context, arena, room.documentTitle),
+                      icon: const Icon(Icons.edit_outlined, size: 20, color: Color(0xFF0071E3)),
+                    ),
+                ],
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildRoomInfo(bool isDark, BuildContext context) {
+  void _showEditTitleDialog(BuildContext context, ArenaProvider arena, String currentTitle) {
+    final controller = TextEditingController(text: currentTitle);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Edit Topic', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(hintText: 'Enter a scholarly topic name'),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () {
+              arena.updateRoomTopic(controller.text);
+              Navigator.pop(context);
+            },
+            child: const Text('Update'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRoomInfo(bool isDark, BuildContext context, ArenaProvider arena, ArenaRoom room, bool isHost) {
     return AppleCard(
       padding: const EdgeInsets.all(32),
       child: Column(
@@ -123,7 +183,7 @@ class ArenaLobbyScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  roomId.toUpperCase(),
+                  room.id.toUpperCase(),
                   style: GoogleFonts.outfit(
                     fontSize: 48,
                     fontWeight: FontWeight.w800,
@@ -135,23 +195,30 @@ class ArenaLobbyScreen extends StatelessWidget {
           ),
           const SizedBox(height: 32),
           Text(
-            'Share this code with your study group or classmates. Competition starts when the host triggers the launch.',
+            isHost 
+              ? 'As the host, you control the launch sequence. Wait for your study group to join the hall.'
+              : 'Waiting for the host to trigger the competition. Prepare your focus.',
             style: TextStyle(fontSize: 14, height: 1.6, color: isDark ? Colors.white54 : Colors.black54),
           ),
           const Spacer(),
           AppleButton(
             label: 'Copy Invitation Link',
-            onPressed: () {},
+            onPressed: () {}, // Implementation placeholder
             width: double.infinity,
             isPrimary: false,
           ),
           const SizedBox(height: 12),
           AppleButton(
-            label: 'Start Competition',
-            onPressed: () => Navigator.pushReplacement(
-              context, 
-              MaterialPageRoute(builder: (_) => ArenaGameScreen(roomId: roomId))
-            ),
+            label: isHost ? 'Start Competition' : 'Waiting for Launch...',
+            onPressed: isHost && room.players.length > 0
+              ? () {
+                  arena.startCompetition();
+                  Navigator.pushReplacement(
+                    context, 
+                    MaterialPageRoute(builder: (_) => ArenaGameScreen(roomId: room.id))
+                  );
+                }
+              : null,
             width: double.infinity,
           ),
         ],
@@ -159,7 +226,9 @@ class ArenaLobbyScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPlayerList(bool isDark) {
+  Widget _buildPlayerList(bool isDark, ArenaRoom room, String myId) {
+    final players = room.players;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -167,7 +236,7 @@ class ArenaLobbyScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'STUDY HALL (4)',
+              'STUDY HALL (${players.length})',
               style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.w800, color: isDark ? Colors.white24 : Colors.black26),
             ),
             const Icon(Icons.group_rounded, size: 16, color: Colors.blue),
@@ -176,9 +245,9 @@ class ArenaLobbyScreen extends StatelessWidget {
         const SizedBox(height: 20),
         Expanded(
           child: ListView.builder(
-            itemCount: 4,
+            itemCount: players.length,
             itemBuilder: (context, index) {
-              final names = ['Quantum Plato', 'Cyber Curie', 'Digital Darwin', 'Neural Newton'];
+              final player = players[index];
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.all(20),
@@ -191,15 +260,15 @@ class ArenaLobbyScreen extends StatelessWidget {
                   children: [
                     CircleAvatar(
                       backgroundColor: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1),
-                      child: Text(names[index][0], style: TextStyle(color: isDark ? Colors.white : Colors.black)),
+                      child: Text(player.name[0].toUpperCase(), style: TextStyle(color: isDark ? Colors.white : Colors.black)),
                     ),
                     const SizedBox(width: 16),
                     Text(
-                      names[index],
+                      player.id == myId ? '${player.name} (You)' : player.name,
                       style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
                     ),
                     const Spacer(),
-                    if (index == 0) // Example Host tag
+                    if (player.id == room.hostId)
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(color: Colors.blue.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(20)),
