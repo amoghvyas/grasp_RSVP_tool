@@ -112,7 +112,7 @@ class _InputScreenState extends State<InputScreen> {
         children: [
           SafeArea(
             child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: sw < 600 ? 20 : 40, vertical: 60),
+              padding: EdgeInsets.symmetric(horizontal: sw < 600 ? 20 : 40, vertical: sw < 600 ? 100 : 60),
               child: Center(
                 child: ConstrainedBox(
                   constraints: BoxConstraints(maxWidth: sw > 900 ? 800 : double.infinity),

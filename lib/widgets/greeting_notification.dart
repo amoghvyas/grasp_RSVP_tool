@@ -123,19 +123,19 @@ class _AnimatedPillState extends State<_AnimatedPill> with SingleTickerProviderS
                       ),
                     ],
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        widget.message,
-                        style: GoogleFonts.outfit(
-                          color: isDark ? Colors.white : Colors.black,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: -0.2,
-                        ),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 80),
+                    child: Text(
+                      widget.message,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.outfit(
+                        color: isDark ? Colors.white : Colors.black,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -0.2,
+                        height: 1.2,
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),

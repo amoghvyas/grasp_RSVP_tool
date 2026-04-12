@@ -35,6 +35,8 @@ class ArenaLobbyScreen extends StatelessWidget {
 
     final isHost = arena.myId == room.hostId;
 
+    final isMobile = MediaQuery.of(context).size.width < 900;
+
     return Scaffold(
       body: Stack(
         children: [
@@ -51,16 +53,23 @@ class ArenaLobbyScreen extends StatelessWidget {
           ),
           
           SafeArea(
-            child: Padding(
+            child: SingleChildScrollView(
               padding: const EdgeInsets.all(32),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildHeader(isDark, context, room, arena),
-                  const SizedBox(height: 48),
+                  const SizedBox(height: 32),
                   
-                  Expanded(
-                    child: Row(
+                  if (isMobile) ...[
+                    _buildRoomInfo(isDark, context, arena, room, isHost),
+                    const SizedBox(height: 32),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 500),
+                      child: _buildPlayerList(isDark, room, arena.myId),
+                    ),
+                  ] else ...[
+                    Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
@@ -70,11 +79,14 @@ class ArenaLobbyScreen extends StatelessWidget {
                         const SizedBox(width: 40),
                         Expanded(
                           flex: 3,
-                          child: _buildPlayerList(isDark, room, arena.myId),
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxHeight: 600),
+                            child: _buildPlayerList(isDark, room, arena.myId),
+                          ),
                         ),
                       ],
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),
@@ -86,6 +98,7 @@ class ArenaLobbyScreen extends StatelessWidget {
 
   Widget _buildHeader(bool isDark, BuildContext context, ArenaRoom room, ArenaProvider arena) {
     final isHost = arena.myId == room.hostId;
+    final isMobile = MediaQuery.of(context).size.width < 600;
 
     return Row(
       children: [
@@ -104,7 +117,7 @@ class ArenaLobbyScreen extends StatelessWidget {
               Text(
                 'SCHOLARLY ARENA',
                 style: GoogleFonts.outfit(
-                  fontSize: 12,
+                  fontSize: 10,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 2,
                   color: const Color(0xFF0071E3),
@@ -116,7 +129,7 @@ class ArenaLobbyScreen extends StatelessWidget {
                     child: Text(
                       room.documentTitle,
                       style: GoogleFonts.outfit(
-                        fontSize: 32,
+                        fontSize: isMobile ? 24 : 32,
                         fontWeight: FontWeight.w700,
                       ),
                       overflow: TextOverflow.ellipsis,
