@@ -48,7 +48,7 @@ class AppleCard extends StatelessWidget {
 
 class AppleButton extends StatefulWidget {
   final String label;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final bool isLoading;
   final bool isPrimary;
   final IconData? icon;
@@ -57,7 +57,7 @@ class AppleButton extends StatefulWidget {
   const AppleButton({
     super.key,
     required this.label,
-    required this.onPressed,
+    this.onPressed,
     this.isLoading = false,
     this.isPrimary = true,
     this.icon,
@@ -96,14 +96,16 @@ class _AppleButtonState extends State<AppleButton> with SingleTickerProviderStat
         onTapDown: (_) => _controller.forward(),
         onTapUp: (_) => _controller.reverse(),
         onTapCancel: () => _controller.reverse(),
-        onTap: widget.isLoading ? null : widget.onPressed,
+        onTap: widget.isLoading || widget.onPressed == null ? null : widget.onPressed,
         child: ScaleTransition(
           scale: _scale,
           child: Container(
             width: widget.width,
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
             decoration: BoxDecoration(
-              color: widget.isPrimary ? primaryColor : (isDark ? Colors.white10 : const Color(0xFFF2F2F7)),
+              color: widget.onPressed == null 
+                ? (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05))
+                : (widget.isPrimary ? primaryColor : (isDark ? Colors.white10 : const Color(0xFFF2F2F7))),
               borderRadius: BorderRadius.circular(30),
             ),
             child: Row(

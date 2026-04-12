@@ -163,7 +163,7 @@ class ArenaResultScreen extends StatelessWidget {
               style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: 4),
             ),
             const SizedBox(height: 24),
-            const Divider(width: 100, thickness: 1),
+            const Divider(thickness: 1, indent: 100, endIndent: 100),
             const SizedBox(height: 32),
             Text(
               'This acknowledges that',
@@ -189,7 +189,7 @@ class ArenaResultScreen extends StatelessWidget {
                     Text('VALIDATION ID: ${_generateValidationId()}', style: GoogleFonts.outfit(fontSize: 8, color: const Color(0xFF0071E3), fontWeight: FontWeight.w600)),
                     const SizedBox(height: 4),
                     Text('Grasp Scholarly v1.0', style: GoogleFonts.outfit(fontWeight: FontWeight.w700, fontSize: 16)),
-                    const Text('Groq-Accelerated LPU Performance', style: TextStyle(fontSize: 9, opacity: 0.6)),
+                    Text('Groq-Accelerated LPU Performance', style: TextStyle(fontSize: 9, color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6))),
                   ],
                 ),
                 Container(

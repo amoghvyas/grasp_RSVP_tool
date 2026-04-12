@@ -12,6 +12,7 @@ import '../widgets/arena_entrance_widget.dart';
 import '../widgets/developer_overlay.dart';
 import '../widgets/dropzone_widget.dart';
 import '../widgets/focus_tools_overlay.dart';
+import '../widgets/greeting_notification.dart';
 import '../widgets/gratitude_announcement.dart';
 import '../widgets/study_tools_panel.dart';
 import '../widgets/welcome_guide_panel.dart';
@@ -45,6 +46,7 @@ class _InputScreenState extends State<InputScreen> {
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      GreetingNotification.showFeatureAnnouncement(context);
       Future.delayed(const Duration(milliseconds: 800), () {
         if (mounted) {
           setState(() => _isGlowActive = true);
@@ -96,13 +98,6 @@ class _InputScreenState extends State<InputScreen> {
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      GreetingNotification.showFeatureAnnouncement(context);
-    });
-  }
 
   @override
   Widget build(BuildContext context) {

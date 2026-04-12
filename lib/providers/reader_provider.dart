@@ -26,6 +26,8 @@ class ReaderProvider extends ChangeNotifier {
   final TtsService _ttsService = TtsService();
   final GroqService _groqService = GroqService();
   final UrlImportService _urlService = UrlImportService();
+  
+  GroqService get groq => _groqService;
 
   Timer? _timer;
   Timer? _sprintTimer;

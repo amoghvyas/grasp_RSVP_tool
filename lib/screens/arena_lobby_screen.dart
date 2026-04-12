@@ -47,7 +47,7 @@ class ArenaLobbyScreen extends StatelessWidget {
                         // Left Side: Room Info & Invite
                         Expanded(
                           flex: 2,
-                          child: _buildRoomInfo(isDark),
+                          child: _buildRoomInfo(isDark, context),
                         ),
                         const SizedBox(width: 40),
                         
@@ -101,7 +101,7 @@ class ArenaLobbyScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRoomInfo(bool isDark) {
+  Widget _buildRoomInfo(bool isDark, BuildContext context) {
     return AppleCard(
       padding: const EdgeInsets.all(32),
       child: Column(

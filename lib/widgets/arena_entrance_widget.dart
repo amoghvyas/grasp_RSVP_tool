@@ -73,7 +73,7 @@ class ArenaEntranceWidget extends StatelessWidget {
                       final groq = context.read<ReaderProvider>().groq;
                       final id = await arena.hostCompetition(
                         reader.state.fileName ?? 'Pasted Content', 
-                        reader.state.fullText,
+                        reader.state.rawText,
                         groq
                       );
                        if (context.mounted) {

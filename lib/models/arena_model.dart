@@ -1,3 +1,5 @@
+import 'reader_state.dart';
+
 enum PlayerStatus { waiting, playing, finished }
 
 class ArenaPlayer {

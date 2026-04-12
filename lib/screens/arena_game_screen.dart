@@ -18,7 +18,11 @@ class ArenaGameScreen extends StatefulWidget {
 class _ArenaGameScreenState extends State<ArenaGameScreen> with TickerProviderStateMixin {
   late AnimationController _timerController;
   int _currentQuestionIndex = 0;
-  
+
+  void _startQuestionLoop() {
+    _timerController.forward(from: 0);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -26,11 +30,7 @@ class _ArenaGameScreenState extends State<ArenaGameScreen> with TickerProviderSt
       vsync: this,
       duration: const Duration(seconds: 15),
     );
-    _startQuestionLoop();
-  }
-
-  void _startQuestionLoop() {
-    _timerController.forward(from: 0).addStatusListener((status) {
+    _timerController.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         if (_currentQuestionIndex < 9) {
           setState(() {
@@ -51,6 +51,7 @@ class _ArenaGameScreenState extends State<ArenaGameScreen> with TickerProviderSt
         }
       }
     });
+    _startQuestionLoop();
   }
 
   @override
