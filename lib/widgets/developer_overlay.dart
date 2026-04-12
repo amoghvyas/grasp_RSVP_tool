@@ -79,7 +79,7 @@ class _DeveloperOverlayState extends State<DeveloperOverlay> {
                           ),
                           child: ClipOval(
                             child: Image.network(
-                              'https://raw.githubusercontent.com/amoghvyas/pod-deadline-widget/main/developer.jpg',
+                              'https://github.com/amoghvyas.png',
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) => Icon(
                                 Icons.person_rounded, 
@@ -148,7 +148,7 @@ class _DeveloperOverlayState extends State<DeveloperOverlay> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             _logoBtn(
-                              'https://cdn-icons-png.flaticon.com/512/25/25231.png', 
+                              'https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png', 
                               'https://github.com/amoghvyas',
                               isDark,
                             ),
