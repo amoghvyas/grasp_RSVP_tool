@@ -36,7 +36,7 @@ class ArenaProvider extends ChangeNotifier {
   /// REWRITTEN LOGIC: Optimistic Hosting
   /// 1. Immediately creates a shell room in Firebase to allow instant Lobby entry.
   /// 2. Initiates background AI synthesis.
-  Future<String> hostCompetitionOptimistic(String documentTitle, String text, GroqService groq) async {
+  Future<String> hostCompetitionOptimistic(String documentTitle, String text, GroqService groq, String userName) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -53,7 +53,7 @@ class ArenaProvider extends ChangeNotifier {
         secretKey: secretKey,
         questions: [], // Initially empty to prevent blocking
         players: [
-          ArenaPlayer(id: _myId, name: name.isEmpty ? 'Scholar' : name, status: PlayerStatus.waiting),
+          ArenaPlayer(id: _myId, name: userName.isEmpty ? 'Scholar' : userName, status: PlayerStatus.waiting),
         ],
       );
 

@@ -44,7 +44,7 @@ class _ArenaInitScreenState extends State<ArenaInitScreen> with SingleTickerProv
 
     try {
       // Direct Optimistic Handshake with increased regional tolerance
-      final id = await arena.hostCompetitionOptimistic(widget.title, widget.content, groq).timeout(const Duration(seconds: 30));
+      final id = await arena.hostCompetitionOptimistic(widget.title, widget.content, groq, 'Scholar').timeout(const Duration(seconds: 30));
       
       if (mounted) {
         Navigator.pushReplacement(
