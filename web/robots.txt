@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://grasptool.app/sitemap.xml
