@@ -14,8 +14,12 @@ class ArenaFirebaseService {
 
   FirebaseDatabase get _db {
     try {
-      // Force the regional database URL with a clean root-only trim
-      final cleanUrl = _dbUrl.trim().replaceAll(RegExp(r'/+$'), '');
+      // High-Fidelity Sanitization: Strip trailing slashes, spaces, AND literal quotes from GitHub Secrets
+      final cleanUrl = _dbUrl.trim()
+          .replaceAll(RegExp(r'/+$'), '')
+          .replaceAll('"', '')
+          .replaceAll("'", "");
+          
       return FirebaseDatabase.instanceFor(
         app: Firebase.app(),
         databaseURL: cleanUrl.isEmpty ? null : cleanUrl,

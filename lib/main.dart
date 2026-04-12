@@ -29,8 +29,11 @@ void main() async {
     
     // 1. Try Zero-Leak Environment Injection (Production)
     if (_fbApiKey.isNotEmpty) {
-      // High-Fidelity Sanitization: Remove ALL trailing slashes and secret-stray spaces
-      final sanitizedDbUrl = _fbDbUrl.trim().replaceAll(RegExp(r'/+$'), '');
+      // High-Fidelity Sanitization: Remove ALL trailing slashes, secret-stray spaces, and literal quotes
+      final sanitizedDbUrl = _fbDbUrl.trim()
+          .replaceAll(RegExp(r'/+$'), '')
+          .replaceAll('"', '')
+          .replaceAll("'", "");
 
       options = FirebaseOptions(
         apiKey: _fbApiKey,
