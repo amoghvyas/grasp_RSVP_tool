@@ -7,6 +7,7 @@ import 'providers/reader_provider.dart';
 import 'providers/theme_provider.dart';
 import 'screens/input_screen.dart';
 import 'screens/reader_screen.dart';
+import 'widgets/greeting_notification.dart';
 
 const _groqApiKey = String.fromEnvironment('GROQ_API_KEY', defaultValue: '');
 
@@ -110,8 +111,21 @@ class RSVPReaderApp extends StatelessWidget {
   }
 }
 
-class _AppShell extends StatelessWidget {
+class _AppShell extends StatefulWidget {
   const _AppShell();
+
+  @override
+  State<_AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends State<_AppShell> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      GreetingNotification.showMSTGreeting(context);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
