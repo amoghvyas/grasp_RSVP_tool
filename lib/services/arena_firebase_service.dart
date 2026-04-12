@@ -4,10 +4,7 @@ import 'package:firebase_database/firebase_database.dart';
 import '../models/arena_model.dart';
 
 class ArenaFirebaseService {
-  final FirebaseDatabase _db = FirebaseDatabase.instanceFor(
-    app: Firebase.app(),
-    databaseURL: 'https://grasp-scholarly-default-rtdb.asia-southeast1.firebasedatabase.app/',
-  );
+  final FirebaseDatabase _db = FirebaseDatabase.instance;
   
   // Singleton pattern for Scholarly reliability
   static final ArenaFirebaseService _instance = ArenaFirebaseService._internal();
