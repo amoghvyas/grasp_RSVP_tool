@@ -26,13 +26,34 @@ class ArenaEntranceWidget extends StatelessWidget {
               const Expanded(child: Divider()),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Text(
-                  'SCHOLARLY COLLABORATION',
-                  style: GoogleFonts.outfit(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 2,
-                    color: isDark ? Colors.white24 : Colors.black26,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0071E3).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: const Color(0xFF0071E3).withValues(alpha: 0.2)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF0071E3).withValues(alpha: 0.05),
+                        blurRadius: 20,
+                        spreadRadius: 5,
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        'SCHOLARLY ARENA',
+                        style: GoogleFonts.outfit(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 2,
+                          color: const Color(0xFF0071E3),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      _buildShimmerBadge(),
+                    ],
                   ),
                 ),
               ),
@@ -76,6 +97,24 @@ class ArenaEntranceWidget extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildShimmerBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0071E3),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        'NEW',
+        style: GoogleFonts.outfit(
+          fontSize: 8,
+          fontWeight: FontWeight.w900,
+          color: Colors.white,
+        ),
       ),
     );
   }
