@@ -45,21 +45,27 @@ class ArenaResultScreen extends StatelessWidget {
                   _buildCertificateOfMastery(sortedResults.first.key, sortedResults.first.value, isDark),
                   
                   const SizedBox(height: 60),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      AppleButton(
-                        label: 'Download Certificate',
-                        onPressed: () {},
-                        icon: Icons.download_rounded,
-                      ),
-                      const SizedBox(width: 20),
-                      AppleButton(
-                        label: 'Return to Hub',
-                        onPressed: () => Navigator.pop(context),
-                        isPrimary: false,
-                      ),
-                    ],
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isMobile = constraints.maxWidth < 600;
+                      return Column(
+                        children: [
+                          AppleButton(
+                            label: 'Download Certificate',
+                            onPressed: () {},
+                            icon: Icons.download_rounded,
+                            width: isMobile ? double.infinity : null,
+                          ),
+                          const SizedBox(height: 16),
+                          AppleButton(
+                            label: 'Return to Home',
+                            onPressed: () => Navigator.pop(context),
+                            isPrimary: false,
+                            width: isMobile ? double.infinity : null,
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ],
               ),

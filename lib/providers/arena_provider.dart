@@ -144,6 +144,11 @@ class ArenaProvider extends ChangeNotifier {
     );
   }
 
+  Future<void> endCompetition(bool showResults) async {
+    if (_currentRoom == null || _currentRoom!.hostId != _myId) return;
+    await _firebase.endRoom(_currentRoom!.id, showResults);
+  }
+
   Future<String?> validateNickname(String name) async {
     if (name.length < 3) return "Name too short.";
     if (name.toLowerCase().contains('bad') || name.contains('toxic')) {

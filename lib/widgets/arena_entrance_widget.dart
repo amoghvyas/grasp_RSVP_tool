@@ -63,40 +63,57 @@ class ArenaEntranceWidget extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 32),
-          Row(
-            children: [
-              Expanded(
-                child: _ArenaSmallCard(
-                  title: 'Host Arena',
-                  subtitle: 'Challenge your group using this document.',
-                  icon: Icons.hub_rounded,
-                  onPressed: reader.state.hasContent 
-                    ? () => _showRules(context, () {
-                        Navigator.push(
-                          context, 
-                          MaterialPageRoute(
-                            builder: (_) => ArenaInitScreen(
-                              title: reader.state.fileName ?? 'Pasted Content', 
-                              content: reader.state.rawText,
-                            ),
-                          ),
-                        );
-                      })
-                    : null,
-                  isDark: isDark,
-                ),
-              ),
-              const SizedBox(width: 20),
-              Expanded(
-                child: _ArenaSmallCard(
-                  title: 'Join Arena',
-                  subtitle: 'Enter a code to compete with others.',
-                  icon: Icons.sports_esports_rounded,
-                  onPressed: () => _showRules(context, () => _showJoinDialog(context)),
-                  isDark: isDark,
-                ),
-              ),
-            ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth < 600) {
+                return Column(
+                  children: [
+                    _ArenaSmallCard(
+                      title: 'Host Arena',
+                      subtitle: 'Challenge your group using this document.',
+                      icon: Icons.hub_rounded,
+                      onPressed: reader.state.hasContent 
+                        ? () => _showRules(context, () => _showHostDialog(context))
+                        : null,
+                      isDark: isDark,
+                    ),
+                    const SizedBox(height: 20),
+                    _ArenaSmallCard(
+                      title: 'Join Arena',
+                      subtitle: 'Enter a code to compete with others.',
+                      icon: Icons.sports_esports_rounded,
+                      onPressed: () => _showRules(context, () => _showJoinDialog(context)),
+                      isDark: isDark,
+                    ),
+                  ],
+                );
+              }
+              return Row(
+                children: [
+                  Expanded(
+                    child: _ArenaSmallCard(
+                      title: 'Host Arena',
+                      subtitle: 'Challenge your group using this document.',
+                      icon: Icons.hub_rounded,
+                      onPressed: reader.state.hasContent 
+                        ? () => _showRules(context, () => _showHostDialog(context))
+                        : null,
+                      isDark: isDark,
+                    ),
+                  ),
+                  const SizedBox(width: 20),
+                  Expanded(
+                    child: _ArenaSmallCard(
+                      title: 'Join Arena',
+                      subtitle: 'Enter a code to compete with others.',
+                      icon: Icons.sports_esports_rounded,
+                      onPressed: () => _showRules(context, () => _showJoinDialog(context)),
+                      isDark: isDark,
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -134,10 +151,75 @@ class ArenaEntranceWidget extends StatelessWidget {
     );
   }
 
+  void _showHostDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => const _HostArenaDialog(),
+    );
+  }
+
   void _showJoinDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => const _JoinArenaDialog(),
+    );
+  }
+}
+
+class _HostArenaDialog extends StatefulWidget {
+  const _HostArenaDialog();
+
+  @override
+  State<_HostArenaDialog> createState() => _HostArenaDialogState();
+}
+
+class _HostArenaDialogState extends State<_HostArenaDialog> {
+  final _nameController = TextEditingController(text: 'Quantum Scholar');
+
+  @override
+  Widget build(BuildContext context) {
+    final reader = context.read<ReaderProvider>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 400),
+        child: AppleCard(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Initialize Arena', style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 12),
+              Text('Set your scholarly alias as the host.', style: TextStyle(color: isDark ? Colors.white54 : Colors.black54), textAlign: TextAlign.center),
+              const SizedBox(height: 32),
+              TextField(
+                controller: _nameController,
+                decoration: const InputDecoration(hintText: 'Host Name (e.g., Lead Polymath)'),
+                autofocus: true,
+              ),
+              const SizedBox(height: 32),
+              AppleButton(
+                label: 'Begin Handshake',
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context, 
+                    MaterialPageRoute(
+                      builder: (_) => ArenaInitScreen(
+                        title: reader.state.fileName ?? 'Pasted Content', 
+                        content: reader.state.rawText,
+                        hostName: _nameController.text,
+                      ),
+                    ),
+                  );
+                },
+                width: double.infinity,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

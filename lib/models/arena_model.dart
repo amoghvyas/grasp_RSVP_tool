@@ -61,6 +61,8 @@ class ArenaRoom {
   final String? secretKey;
   final List<ArenaPlayer> players;
   final bool isStarted;
+  final bool isEnded;
+  final bool showResults;
   final int currentQuestionIndex;
   final int? startTimeMs;
   final List<InteractiveQuiz> questions;
@@ -72,6 +74,8 @@ class ArenaRoom {
     this.secretKey,
     this.players = const [],
     this.isStarted = false,
+    this.isEnded = false,
+    this.showResults = false,
     this.currentQuestionIndex = 0,
     this.startTimeMs,
     this.questions = const [],
@@ -84,6 +88,8 @@ class ArenaRoom {
     'secretKey': secretKey,
     'players': { for (var p in players) p.id : p.toMap() },
     'isStarted': isStarted,
+    'isEnded': isEnded,
+    'showResults': showResults,
     'currentQuestionIndex': currentQuestionIndex,
     'startTimeMs': startTimeMs,
     'questions': questions.map((q) => q.toMap()).toList(),
@@ -100,6 +106,8 @@ class ArenaRoom {
       secretKey: map['secretKey'],
       players: playersMap.values.map((p) => ArenaPlayer.fromMap(p)).toList(),
       isStarted: map['isStarted'] ?? false,
+      isEnded: map['isEnded'] ?? false,
+      showResults: map['showResults'] ?? false,
       currentQuestionIndex: map['currentQuestionIndex'] ?? 0,
       startTimeMs: map['startTimeMs'],
       questions: questionsList.map((q) => InteractiveQuiz.fromMap(q)).toList(),
@@ -109,6 +117,8 @@ class ArenaRoom {
   ArenaRoom copyWith({
     String? documentTitle,
     bool? isStarted,
+    bool? isEnded,
+    bool? showResults,
     int? currentQuestionIndex,
     int? startTimeMs,
     List<ArenaPlayer>? players,
@@ -120,6 +130,8 @@ class ArenaRoom {
       secretKey: secretKey,
       players: players ?? this.players,
       isStarted: isStarted ?? this.isStarted,
+      isEnded: isEnded ?? this.isEnded,
+      showResults: showResults ?? this.showResults,
       currentQuestionIndex: currentQuestionIndex ?? this.currentQuestionIndex,
       startTimeMs: startTimeMs ?? this.startTimeMs,
       questions: questions,

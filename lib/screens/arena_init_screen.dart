@@ -9,8 +9,9 @@ import 'arena_lobby_screen.dart';
 class ArenaInitScreen extends StatefulWidget {
   final String title;
   final String content;
+  final String hostName;
 
-  const ArenaInitScreen({super.key, required this.title, required this.content});
+  const ArenaInitScreen({super.key, required this.title, required this.content, required this.hostName});
 
   @override
   State<ArenaInitScreen> createState() => _ArenaInitScreenState();
@@ -44,7 +45,7 @@ class _ArenaInitScreenState extends State<ArenaInitScreen> with SingleTickerProv
 
     try {
       // Direct Optimistic Handshake with increased regional tolerance
-      final id = await arena.hostCompetitionOptimistic(widget.title, widget.content, groq, 'Scholar').timeout(const Duration(seconds: 30));
+      final id = await arena.hostCompetitionOptimistic(widget.title, widget.content, groq, widget.hostName).timeout(const Duration(seconds: 30));
       
       if (mounted) {
         Navigator.pushReplacement(

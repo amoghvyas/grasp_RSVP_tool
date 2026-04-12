@@ -112,6 +112,20 @@ class _ArenaGameScreenState extends State<ArenaGameScreen> with TickerProviderSt
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
+    // Master Governance: Monitor for hall dissolution
+    if (room.isEnded) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          if (room.showResults) {
+            _showResults();
+          } else {
+            Navigator.of(context).popUntil((route) => route.isFirst);
+          }
+        }
+      });
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     // High-Fidelity Sync: Reset state if the question index changes (prevents ghost highlights)
     if (_lastSyncedIndex != _currentQuestionIndex) {
       _lastSyncedIndex = _currentQuestionIndex;
@@ -156,10 +170,17 @@ class _ArenaGameScreenState extends State<ArenaGameScreen> with TickerProviderSt
   Widget _buildTopBar(bool isDark, ArenaRoom room) {
     final sw = MediaQuery.of(context).size.width;
     final isMobile = sw < 600;
+    final isHost = room.hostId == context.read<ArenaProvider>().myId;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
+        IconButton(
+          onPressed: () => _handleExitRequest(isHost),
+          icon: Icon(Icons.logout_rounded, color: isDark ? Colors.white30 : Colors.black26),
+          tooltip: 'Leave Arena',
+        ),
+        const SizedBox(width: 8),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -297,6 +318,130 @@ class _ArenaGameScreenState extends State<ArenaGameScreen> with TickerProviderSt
             Expanded(child: Text(text, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500))),
             if (showResult && isCorrect) const Icon(Icons.check_circle_rounded, color: Colors.greenAccent),
           ],
+        ),
+      ),
+    );
+  }
+
+  void _handleExitRequest(bool isHost) {
+    if (isHost) {
+      _showHostGovernance();
+    } else {
+      _showPlayerExitConfirmation();
+    }
+  }
+
+  void _showPlayerExitConfirmation() {
+    showDialog(
+      context: context,
+      builder: (context) => Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 400),
+          child: AppleCard(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 48),
+                const SizedBox(height: 16),
+                Text('Withdraw from Arena?', style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 12),
+                const Text('Your current progress will be lost. Confirm scholarly withdrawal?', textAlign: TextAlign.center),
+                const SizedBox(height: 32),
+                Row(
+                  children: [
+                    Expanded(child: AppleButton(label: 'Yes, Leave', onPressed: () {
+                      Navigator.of(context).popUntil((route) => route.isFirst);
+                    }, isPrimary: true)),
+                    const SizedBox(width: 12),
+                    Expanded(child: AppleButton(label: 'No', onPressed: () => Navigator.pop(context), isPrimary: false)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showHostGovernance() {
+    showDialog(
+      context: context,
+      builder: (context) => Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 400),
+          child: AppleCard(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Hall Governance', style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 32),
+                AppleButton(
+                  label: 'Retire Personally',
+                  onPressed: () {
+                    Navigator.of(context).popUntil((route) => route.isFirst);
+                  },
+                  width: double.infinity,
+                  isPrimary: false,
+                ),
+                const SizedBox(height: 12),
+                AppleButton(
+                  label: 'Dissolve Hall (End for All)',
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _showDissolutionConfirmation();
+                  },
+                  width: double.infinity,
+                  isPrimary: true,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showDissolutionConfirmation() {
+    showDialog(
+      context: context,
+      builder: (context) => Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 400),
+          child: AppleCard(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.gavel_rounded, color: Color(0xFF0071E3), size: 48),
+                const SizedBox(height: 16),
+                Text('Declare Results?', style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 12),
+                const Text('Would you like to show the final standings to todos before dissolving?', textAlign: TextAlign.center),
+                const SizedBox(height: 32),
+                AppleButton(
+                  label: 'Yes, Declare mastery',
+                  onPressed: () {
+                    context.read<ArenaProvider>().endCompetition(true);
+                    Navigator.pop(context);
+                  },
+                  width: double.infinity,
+                ),
+                const SizedBox(height: 12),
+                AppleButton(
+                  label: 'No, Quiet Dissolution',
+                  onPressed: () {
+                    context.read<ArenaProvider>().endCompetition(false);
+                    Navigator.pop(context);
+                  },
+                  width: double.infinity,
+                  isPrimary: false,
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

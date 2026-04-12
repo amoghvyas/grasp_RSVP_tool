@@ -73,6 +73,13 @@ class ArenaFirebaseService {
     });
   }
 
+  Future<void> endRoom(String roomId, bool showResults) async {
+    await _roomRef(roomId).update({
+      'isEnded': true,
+      'showResults': showResults,
+    });
+  }
+
   Future<bool> roomExists(String roomId) async {
     final snapshot = await _roomRef(roomId).get();
     return snapshot.exists;
