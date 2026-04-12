@@ -79,7 +79,7 @@ class _DeveloperOverlayState extends State<DeveloperOverlay> {
                           ),
                           child: ClipOval(
                             child: Image.network(
-                              'https://github.com/amoghvyas.png',
+                              'https://raw.githubusercontent.com/amoghvyas/pod-deadline-widget/main/developer.jpg',
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) => Icon(
                                 Icons.person_rounded, 
