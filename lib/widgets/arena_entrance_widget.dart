@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../providers/arena_provider.dart';
 import '../providers/reader_provider.dart';
+import '../screens/arena_init_screen.dart';
 import '../screens/arena_lobby_screen.dart';
 import '../services/groq_service.dart';
 import 'apple_widgets.dart';
@@ -70,32 +71,17 @@ class ArenaEntranceWidget extends StatelessWidget {
                   subtitle: 'Challenge your group using this document.',
                   icon: Icons.hub_rounded,
                   onPressed: reader.state.hasContent 
-                    ? () => _showRules(context, () async {
-                      ScholarlyLoaderOverlay.show(context);
-                      try {
-                        final groq = context.read<ReaderProvider>().groq;
-                        final id = await arena.hostCompetition(
-                          reader.state.fileName ?? 'Pasted Content', 
-                          reader.state.rawText,
-                          groq
-                        );
-                         if (context.mounted) {
-                          ScholarlyLoaderOverlay.hide(context);
-                          Navigator.push(context, MaterialPageRoute(builder: (_) => ArenaLobbyScreen(roomId: id)));
-                        }
-                      } catch (e) {
-                        if (context.mounted) {
-                          ScholarlyLoaderOverlay.hide(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Arena Error: $e'),
-                              backgroundColor: Colors.redAccent,
-                              behavior: SnackBarBehavior.floating,
+                    ? () => _showRules(context, () {
+                        Navigator.push(
+                          context, 
+                          MaterialPageRoute(
+                            builder: (_) => ArenaInitScreen(
+                              title: reader.state.fileName ?? 'Pasted Content', 
+                              content: reader.state.rawText,
                             ),
-                          );
-                        }
-                      }
-                    })
+                          ),
+                        );
+                      })
                     : null,
                   isDark: isDark,
                 ),
