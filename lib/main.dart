@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
+import 'providers/arena_provider.dart';
 import 'providers/reader_provider.dart';
 import 'providers/theme_provider.dart';
 import 'screens/input_screen.dart';
@@ -34,6 +35,7 @@ class RSVPReaderApp extends StatelessWidget {
           },
         ),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => ArenaProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, theme, _) {

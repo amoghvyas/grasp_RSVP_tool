@@ -98,6 +98,8 @@ class _StudyToolsPanelState extends State<StudyToolsPanel> with SingleTickerProv
 
   Widget _buildBody(ReaderProvider provider, ReaderState state, bool isDark) {
     switch (_tabController.index) {
+      case 0: return _buildSummaryView(provider, state, isDark);
+      case 1: return _buildVivaView(provider, state, isDark);
       case 2: return _buildQuizView(provider, state, isDark);
       case 3: return _buildRecapSettingsView(provider, state, isDark);
       default: return const SizedBox();
@@ -147,6 +149,47 @@ class _StudyToolsPanelState extends State<StudyToolsPanel> with SingleTickerProv
         if (state.vivaQuestions != null) ...[
           const SizedBox(height: 24),
           _buildContentCard(state.vivaQuestions!, isDark),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildQuizView(ReaderProvider provider, ReaderState state, bool isDark) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Questions: ${_quizCount.toInt()}', style: TextStyle(fontSize: 12, color: isDark ? Colors.white38 : Colors.black38)),
+                  Slider(
+                    value: _quizCount,
+                    min: 3,
+                    max: 20,
+                    divisions: 17,
+                    activeColor: isDark ? const Color(0xFF00A2FF) : const Color(0xFF0071E3),
+                    inactiveColor: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+                    onChanged: (v) => setState(() => _quizCount = v),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 16),
+            _buildDifficultyDropdown(isDark),
+          ],
+        ),
+        const SizedBox(height: 20),
+        AppleButton(
+          label: 'Start MCQ Quiz',
+          isLoading: state.isQuizLoading,
+          onPressed: () => provider.generateInteractiveQuiz(_quizCount.toInt(), _quizDifficulty),
+          width: double.infinity,
+        ),
+        if (state.quizzes != null) ...[
+          const SizedBox(height: 24),
+          ...state.quizzes!.asMap().entries.map((e) => _buildQuizCard(e.key, e.value, provider, isDark)),
         ],
       ],
     );
