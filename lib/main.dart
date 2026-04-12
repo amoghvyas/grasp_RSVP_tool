@@ -29,10 +29,8 @@ void main() async {
     
     // 1. Try Zero-Leak Environment Injection (Production)
     if (_fbApiKey.isNotEmpty) {
-      // Proactive Sanitization: Remove trailing slashes and child paths from DB URL
-      final sanitizedDbUrl = _fbDbUrl.endsWith('/') 
-          ? _fbDbUrl.substring(0, _fbDbUrl.length - 1) 
-          : _fbDbUrl;
+      // High-Fidelity Sanitization: Remove ALL trailing slashes and secret-stray spaces
+      final sanitizedDbUrl = _fbDbUrl.trim().replaceAll(RegExp(r'/+$'), '');
 
       options = FirebaseOptions(
         apiKey: _fbApiKey,
