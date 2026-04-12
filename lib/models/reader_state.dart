@@ -66,6 +66,9 @@ class ReaderState {
   final int? selectedRecallIndex;
   
   final int recallInterval;
+  final int lastRecallIndex;
+  final List<RecallQuestion>? preGeneratedRecalls;
+  final Set<int> recallTriggeredIndices;
   final FocusSound focusSound;
   final double focusVolume;
   final bool isListening;
@@ -95,6 +98,9 @@ class ReaderState {
     this.hasAnsweredRecall = false,
     this.selectedRecallIndex,
     this.recallInterval = 200,
+    this.lastRecallIndex = -1,
+    this.preGeneratedRecalls,
+    this.recallTriggeredIndices = const {},
     this.focusSound = FocusSound.none,
     this.focusVolume = 0.5,
     this.isListening = false,
@@ -125,6 +131,9 @@ class ReaderState {
     bool? hasAnsweredRecall,
     int? selectedRecallIndex,
     int? recallInterval,
+    int? lastRecallIndex,
+    List<RecallQuestion>? preGeneratedRecalls,
+    Set<int>? recallTriggeredIndices,
     FocusSound? focusSound,
     double? focusVolume,
     bool? isListening,
@@ -158,6 +167,9 @@ class ReaderState {
       hasAnsweredRecall: clearRecall ? false : (hasAnsweredRecall ?? this.hasAnsweredRecall),
       selectedRecallIndex: clearRecall ? null : (selectedRecallIndex ?? this.selectedRecallIndex),
       recallInterval: recallInterval ?? this.recallInterval,
+      lastRecallIndex: lastRecallIndex ?? this.lastRecallIndex,
+      preGeneratedRecalls: preGeneratedRecalls ?? this.preGeneratedRecalls,
+      recallTriggeredIndices: recallTriggeredIndices ?? this.recallTriggeredIndices,
       focusSound: focusSound ?? this.focusSound,
       focusVolume: focusVolume ?? this.focusVolume,
       isListening: isListening ?? this.isListening,

@@ -56,8 +56,11 @@ class ReaderProvider extends ChangeNotifier {
       clearSummary: true,
       clearVivaQuestions: true,
       clearRecall: true,
+      preGeneratedRecalls: null,
+      recallTriggeredIndices: {},
     );
     notifyListeners();
+    _preGenerateRecallQuestions(text);
   }
 
   Future<void> loadFile(dynamic bytes, String fileName) async {
@@ -247,25 +250,68 @@ class ReaderProvider extends ChangeNotifier {
 
   // ── ACTIVE RECALL ──────────────────────────────────────────────
 
+  Future<void> _preGenerateRecallQuestions(String text) async {
+    if (text.isEmpty || !_groqService.isInitialized) return;
+    try {
+      final questions = await _groqService.generateRecallQuestions(text);
+      _state = _state.copyWith(preGeneratedRecalls: questions);
+      
+      // Scholarly Interval Calculation: Ensure 5 triggers throughout the total word count
+      if (_state.totalWords > 50) {
+        final interval = (_state.totalWords / 6).round(); 
+        _state = _state.copyWith(recallInterval: interval.clamp(50, 500));
+      }
+      notifyListeners();
+    } catch (e) {
+      // Background failure ignored
+    }
+  }
+
   Future<void> _triggerActiveRecall() async {
     pause();
-    _state = _state.copyWith(isRecallActive: true, clearRecall: true);
-    notifyListeners();
-    try {
-      final start = (_state.currentIndex - 300).clamp(0, _state.totalWords);
-      final contextText = _state.words
-          .sublist(start, _state.currentIndex)
-          .join(' ');
+    _state = _state.copyWith(lastRecallIndex: _state.currentIndex);
+    
+    // Find a question we haven't triggered yet
+    int? questionIndex;
+    if (_state.preGeneratedRecalls != null && _state.preGeneratedRecalls!.isNotEmpty) {
+      for (int i = 0; i < _state.preGeneratedRecalls!.length; i++) {
+        if (!_state.recallTriggeredIndices.contains(i)) {
+          questionIndex = i;
+          break;
+        }
+      }
+    }
 
-      final recall = await _groqService.generateRecallQuestion(contextText);
-
+    if (questionIndex == null) {
+      // No new questions or not pre-generated yet, fall back to old behavior?
+      // Actually, user said only 5. If we've shown 5, we stop.
+      if (_state.recallTriggeredIndices.length >= 5) {
+        play(); // Resume if no more questions
+        return;
+      }
+      
+      _state = _state.copyWith(isRecallActive: true, clearRecall: true);
+      notifyListeners();
+      try {
+        final start = (_state.currentIndex - 300).clamp(0, _state.totalWords);
+        final contextText = _state.words.sublist(start, _state.currentIndex).join(' ');
+        final recall = await _groqService.generateRecallQuestion(contextText);
+        _state = _state.copyWith(
+          recallQuestion: recall.question,
+          recallOptions: recall.options,
+          recallCorrectIndex: recall.correctIndex,
+        );
+      } catch (e) {}
+    } else {
+      final q = _state.preGeneratedRecalls![questionIndex];
+      final newIndices = Set<int>.from(_state.recallTriggeredIndices)..add(questionIndex);
       _state = _state.copyWith(
-        recallQuestion: recall.question,
-        recallOptions: recall.options,
-        recallCorrectIndex: recall.correctIndex,
+        isRecallActive: true,
+        recallQuestion: q.question,
+        recallOptions: q.options,
+        recallCorrectIndex: q.correctIndex,
+        recallTriggeredIndices: newIndices,
       );
-    } catch (e) {
-      // Fallback handled in services
     }
     notifyListeners();
   }
@@ -343,6 +389,7 @@ class ReaderProvider extends ChangeNotifier {
     }
     if (_state.currentIndex > 0 &&
         _state.currentIndex % _state.recallInterval == 0 &&
+        _state.currentIndex != _state.lastRecallIndex &&
         !_state.isRecallActive) {
       _triggerActiveRecall();
       return;

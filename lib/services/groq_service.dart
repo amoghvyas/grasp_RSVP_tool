@@ -81,6 +81,34 @@ class GroqService {
     return _request('Text: $text', systemPrompt: systemPrompt);
   }
 
+  Future<List<RecallQuestion>> generateRecallQuestions(String context) async {
+    final response = await _request(
+      'Text context: $context',
+      systemPrompt: 'You are a mastery teacher. Generate exactly 5 distinct conceptual MCQs covering the main concepts of the entire text. Output ONLY a valid JSON array of objects like this: [{"question": "...", "options": ["A", "B", "C", "D"], "correctIndex": 0}]'
+    );
+
+    try {
+      final startIndex = response.indexOf('[');
+      final endIndex = response.lastIndexOf(']') + 1;
+      if (startIndex == -1 || endIndex == -1) throw Exception('No JSON array found');
+      
+      final jsonStr = response.substring(startIndex, endIndex);
+      final List data = jsonDecode(jsonStr);
+      
+      return data.take(5).map((json) => RecallQuestion(
+        question: json['question'] ?? 'Missing Question?',
+        options: List<String>.from(json['options'] ?? []),
+        correctIndex: json['correctIndex'] ?? 0,
+      )).toList();
+    } catch (e) {
+      return List.generate(5, (i) => RecallQuestion(
+        question: 'What is a key takeaway from this section of the text? (Question ${i+1})',
+        options: ['Key concept A', 'Key concept B', 'Key concept C', 'Key concept D'],
+        correctIndex: 0,
+      ));
+    }
+  }
+
   Future<RecallQuestion> generateRecallQuestion(String context) async {
     final response = await _request(
       'Text context: $context',
