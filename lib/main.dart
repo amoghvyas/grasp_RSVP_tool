@@ -4,13 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-// Zero-Leak Scholarly Injection (Passed via --dart-define)
-const _fbApiKey = String.fromEnvironment('FB_API_KEY');
-const _fbAppId = String.fromEnvironment('FB_APP_ID');
-const _fbSenderId = String.fromEnvironment('FB_SENDER_ID');
-const _fbProjectId = String.fromEnvironment('FB_PROJECT_ID');
-const _fbDbUrl = String.fromEnvironment('FB_DB_URL');
-
 import 'providers/arena_provider.dart';
 import 'providers/reader_provider.dart';
 import 'providers/theme_provider.dart';
@@ -18,6 +11,13 @@ import 'screens/input_screen.dart';
 import 'screens/reader_screen.dart';
 import 'widgets/greeting_notification.dart';
 
+// Zero-Leak Scholarly Injection (Passed via --dart-define)
+// These allow the CI/CD pipeline to inject credentials without the firebase_options.dart file.
+const _fbApiKey = String.fromEnvironment('FB_API_KEY');
+const _fbAppId = String.fromEnvironment('FB_APP_ID');
+const _fbSenderId = String.fromEnvironment('FB_SENDER_ID');
+const _fbProjectId = String.fromEnvironment('FB_PROJECT_ID');
+const _fbDbUrl = String.fromEnvironment('FB_DB_URL');
 const _groqApiKey = String.fromEnvironment('GROQ_API_KEY', defaultValue: '');
 
 void main() async {
@@ -27,7 +27,7 @@ void main() async {
   try {
     FirebaseOptions? options;
     
-    // 1. Try Zero-Leak Environment Injection (Production)
+    // 1. Try Zero-Leak Environment Injection (Production/CI)
     if (_fbApiKey.isNotEmpty) {
       options = const FirebaseOptions(
         apiKey: _fbApiKey,
@@ -36,11 +36,13 @@ void main() async {
         projectId: _fbProjectId,
         databaseURL: _fbDbUrl,
         authDomain: '$_fbProjectId.firebaseapp.com',
-        storageBucket: '$_fbProjectId.appspot.com',
+        storageBucket: '$_fbProjectId.firebasestorage.app',
       );
     } 
     
-    // 2. Initialize with injected or platform-default options
+    // 2. Performance Note: In local dev, if _fbApiKey is empty, 
+    // we initialize with null which allows the app to run (though Arena will be disabled).
+    // To enable Arena locally, pass the FB_ defines in your run command.
     await Firebase.initializeApp(options: options);
     
   } catch (e) {
