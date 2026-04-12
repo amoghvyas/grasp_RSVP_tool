@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 
 // Note: To finalize production sync, you must run `flutterfire configure` 
 // and import 'firebase_options.dart' here.
-// import 'firebase_options.dart';
+import 'firebase_options.dart';
 
 import 'providers/arena_provider.dart';
 import 'providers/reader_provider.dart';
@@ -24,7 +24,7 @@ void main() async {
   try {
     // If you have firebase_options.dart, replace null with DefaultFirebaseOptions.currentPlatform
     await Firebase.initializeApp(
-      options: null, 
+      options: DefaultFirebaseOptions.currentPlatform, 
     );
   } catch (e) {
     debugPrint('[SCHOLARLY WARN] Firebase initialization skipped or incomplete: $e');
