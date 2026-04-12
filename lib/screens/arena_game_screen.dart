@@ -100,6 +100,8 @@ class _ArenaGameScreenState extends State<ArenaGameScreen> with TickerProviderSt
     super.dispose();
   }
 
+  int? _lastSyncedIndex;
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -108,6 +110,14 @@ class _ArenaGameScreenState extends State<ArenaGameScreen> with TickerProviderSt
 
     if (room == null || room.questions.isEmpty) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    // High-Fidelity Sync: Reset state if the question index changes (prevents ghost highlights)
+    if (_lastSyncedIndex != _currentQuestionIndex) {
+      _lastSyncedIndex = _currentQuestionIndex;
+      Future.delayed(Duration.zero, () {
+        if (mounted) _startQuestion();
+      });
     }
 
     final question = room.questions[_currentQuestionIndex];
@@ -120,16 +130,21 @@ class _ArenaGameScreenState extends State<ArenaGameScreen> with TickerProviderSt
             size: Size.infinite,
           ),
           SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 32),
-              child: Column(
-                children: [
-                  _buildTopBar(isDark, room),
-                  const Spacer(flex: 1),
-                  _buildQuestionEngine(isDark, question),
-                  const Spacer(flex: 2),
-                  _buildLiveLeaderboard(isDark, room, arena.myId),
-                ],
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 800),
+                  child: Column(
+                    children: [
+                      _buildTopBar(isDark, room),
+                      const SizedBox(height: 32),
+                      _buildQuestionEngine(isDark, question),
+                      const SizedBox(height: 32),
+                      _buildLiveLeaderboard(isDark, room, arena.myId),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
@@ -139,29 +154,39 @@ class _ArenaGameScreenState extends State<ArenaGameScreen> with TickerProviderSt
   }
 
   Widget _buildTopBar(bool isDark, ArenaRoom room) {
+    final sw = MediaQuery.of(context).size.width;
+    final isMobile = sw < 600;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('QUESTION ${_currentQuestionIndex + 1} OF ${room.questions.length}', 
-              style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 1.5, color: isDark ? Colors.white30 : Colors.black26)),
-            const SizedBox(height: 4),
-            Text(room.documentTitle, style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w600)),
-          ],
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('QUESTION ${_currentQuestionIndex + 1} OF ${room.questions.length}', 
+                style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1.5, color: isDark ? Colors.white30 : Colors.black26)),
+              const SizedBox(height: 4),
+              Text(
+                room.documentTitle, 
+                style: GoogleFonts.outfit(fontSize: isMobile ? 14 : 18, fontWeight: FontWeight.w600),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
         ),
+        const SizedBox(width: 12),
         Stack(
           alignment: Alignment.center,
           children: [
             SizedBox(
-              width: 60,
-              height: 60,
+              width: 50,
+              height: 50,
               child: AnimatedBuilder(
                 animation: _timerController,
                 builder: (context, child) => CircularProgressIndicator(
                   value: 1.0 - _timerController.value,
-                  strokeWidth: 6,
+                  strokeWidth: 4,
                   color: _timerController.value > 0.8 ? Colors.orange : const Color(0xFF0071E3),
                   backgroundColor: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
                 ),
@@ -171,22 +196,23 @@ class _ArenaGameScreenState extends State<ArenaGameScreen> with TickerProviderSt
               animation: _timerController,
               builder: (context, child) {
                 final remaining = (15 * (1.0 - _timerController.value)).ceil();
-                return Text('$remaining', style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.w800));
+                return Text('$remaining', style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w800));
               },
             ),
           ],
         ),
-        _buildRankBadge(room),
+        const SizedBox(width: 12),
+        _buildRankBadge(room, isMobile),
       ],
     );
   }
 
-  Widget _buildRankBadge(ArenaRoom room) {
+  Widget _buildRankBadge(ArenaRoom room, bool isMobile) {
     final sorted = List<ArenaPlayer>.from(room.players)..sort((a, b) => b.score.compareTo(a.score));
     final myRank = sorted.indexWhere((p) => p.id == context.read<ArenaProvider>().myId) + 1;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: isMobile ? 12 : 16, vertical: 8),
       decoration: BoxDecoration(
         color: const Color(0xFF0071E3).withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
@@ -249,8 +275,8 @@ class _ArenaGameScreenState extends State<ArenaGameScreen> with TickerProviderSt
       onTap: () => _submitSelection(index),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        width: 380,
-        padding: const EdgeInsets.all(24),
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
           color: bgColor,
           borderRadius: BorderRadius.circular(20),
@@ -281,17 +307,20 @@ class _ArenaGameScreenState extends State<ArenaGameScreen> with TickerProviderSt
       ..sort((a, b) => b.score.compareTo(a.score));
     
     return AppleCard(
-      padding: const EdgeInsets.all(20),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text('LIVE PULSE:', style: GoogleFonts.outfit(fontSize: 11, fontWeight: FontWeight.w800, color: isDark ? Colors.white30 : Colors.black26)),
-          const SizedBox(width: 20),
-          for (int i = 0; i < topPlayers.take(3).length; i++) ...[
-            if (i > 0) _vDivider(isDark),
-            _pulseItem(topPlayers[i].name, '${topPlayers[i].score} pts', i == 0, isDark),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('LIVE PULSE:', style: GoogleFonts.outfit(fontSize: 10, fontWeight: FontWeight.w800, color: isDark ? Colors.white30 : Colors.black26)),
+            const SizedBox(width: 16),
+            for (int i = 0; i < topPlayers.take(3).length; i++) ...[
+              if (i > 0) _vDivider(isDark),
+              _pulseItem(topPlayers[i].name, '${topPlayers[i].score} pts', i == 0, isDark),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

@@ -53,7 +53,7 @@ class ArenaProvider extends ChangeNotifier {
         secretKey: secretKey,
         questions: [], // Initially empty to prevent blocking
         players: [
-          ArenaPlayer(id: _myId, name: 'You (Host)', status: PlayerStatus.waiting),
+          ArenaPlayer(id: _myId, name: name.isEmpty ? 'Scholar' : name, status: PlayerStatus.waiting),
         ],
       );
 

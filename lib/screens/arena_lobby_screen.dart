@@ -156,9 +156,11 @@ class ArenaLobbyScreen extends StatelessWidget {
                     children: [
                       const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.amber))),
                       const SizedBox(width: 12),
-                      Text(
-                        'AI is synthesizing your competition package...',
-                        style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.amber[800]),
+                      Flexible(
+                        child: Text(
+                          'AI is synthesizing your competition package...',
+                          style: GoogleFonts.outfit(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.amber[800]),
+                        ),
                       ),
                     ],
                   ),
@@ -214,18 +216,16 @@ class ArenaLobbyScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05)),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  room.id.toUpperCase(),
-                  style: GoogleFonts.outfit(
-                    fontSize: 48,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 10,
-                  ),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                room.id.toUpperCase(),
+                style: GoogleFonts.outfit(
+                  fontSize: MediaQuery.of(context).size.width < 600 ? 32 : 48,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 10,
                 ),
-              ],
+              ),
             ),
           ),
           const SizedBox(height: 32),
