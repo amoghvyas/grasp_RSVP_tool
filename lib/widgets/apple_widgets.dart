@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AppleCard extends StatelessWidget {
   final Widget child;
@@ -40,7 +41,16 @@ class AppleCard extends StatelessWidget {
             ),
           ],
         ),
-        child: child,
+        child: Material(
+          type: MaterialType.transparency,
+          child: DefaultTextStyle(
+            style: GoogleFonts.outfit(
+              color: isDark ? Colors.white : Colors.black,
+              fontSize: 15,
+            ),
+            child: child,
+          ),
+        ),
       ),
     );
   }
@@ -128,10 +138,11 @@ class _AppleButtonState extends State<AppleButton> with SingleTickerProviderStat
                   ],
                   Text(
                     widget.label,
-                    style: TextStyle(
+                    style: GoogleFonts.outfit(
                       color: widget.isPrimary ? Colors.white : (isDark ? Colors.white : primaryColor),
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
+                      letterSpacing: 0.2,
                     ),
                   ),
                 ],

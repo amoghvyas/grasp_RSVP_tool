@@ -419,7 +419,7 @@ class _ArenaGameScreenState extends State<ArenaGameScreen> with TickerProviderSt
                 const SizedBox(height: 16),
                 Text('Declare Results?', style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 12),
-                const Text('Would you like to show the final standings to todos before dissolving?', textAlign: TextAlign.center),
+                const Text('Would you like to show the final standings to everyone before dissolving?', textAlign: TextAlign.center),
                 const SizedBox(height: 32),
                 AppleButton(
                   label: 'Yes, Declare mastery',
