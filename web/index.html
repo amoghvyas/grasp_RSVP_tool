@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- SECURITY HEADERS -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://www.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.groq.com https://api.emailjs.com https://r.jina.ai https://www.gstatic.com https://fonts.gstatic.com https://raw.githubusercontent.com https://github.githubassets.com https://cdn-icons-png.flaticon.com;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://www.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.groq.com https://api.emailjs.com https://r.jina.ai https://www.gstatic.com https://fonts.gstatic.com https://raw.githubusercontent.com https://github.githubassets.com https://cdn-icons-png.flaticon.com https://grasp-scholarly-default-rtdb.asia-southeast1.firebasedatabase.app wss://grasp-scholarly-default-rtdb.asia-southeast1.firebasedatabase.app;">
   <meta name="referrer" content="no-referrer">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
 
@@ -118,14 +118,11 @@
     // This avoids downloading the heavy CanvasKit engine (~2.5MB), reducing startup time.
     window.flutterWebRenderer = 'html';
 
-    // The newer Flutter Web initialization logic
+    // Ultra-Fast Fast Scholarly Boot Protocol
     window.addEventListener('load', function(ev) {
-      if (typeof _flutter === 'undefined') {
-        // Fallback for older builds or unexpected loading states
-        return;
-      }
+      if (typeof _flutter === 'undefined') return;
       
-      _flutter.loader.loadEntrypoint({
+      _flutter.loader.load({
         onEntrypointLoaded: async function(engineInitializer) {
           const appRunner = await engineInitializer.initializeEngine({
              renderer: 'html',
@@ -134,7 +131,6 @@
           
           await appRunner.runApp();
           
-          // Smoothly remove the splash screen once the app is running
           const loading = document.getElementById('loading-container');
           if (loading) {
             loading.style.opacity = '0';

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import '../models/arena_model.dart';
+import '../models/reader_state.dart';
 
 class ArenaFirebaseService {
   static const _dbUrl = String.fromEnvironment('FB_DB_URL');
