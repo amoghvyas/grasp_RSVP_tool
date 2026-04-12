@@ -86,12 +86,7 @@ class ArenaRoom {
     'isStarted': isStarted,
     'currentQuestionIndex': currentQuestionIndex,
     'startTimeMs': startTimeMs,
-    'questions': questions.map((q) => {
-      'question': q.question,
-      'options': q.options,
-      'correctIndex': q.correctIndex,
-      'explanation': q.explanation,
-    }).toList(),
+    'questions': questions.map((q) => q.toMap()).toList(),
   };
 
   factory ArenaRoom.fromMap(Map<dynamic, dynamic> map) {
@@ -107,12 +102,7 @@ class ArenaRoom {
       isStarted: map['isStarted'] ?? false,
       currentQuestionIndex: map['currentQuestionIndex'] ?? 0,
       startTimeMs: map['startTimeMs'],
-      questions: questionsList.map((q) => InteractiveQuiz(
-        question: q['question'],
-        options: List<String>.from(q['options']),
-        correctIndex: q['correctIndex'],
-        explanation: q['explanation'],
-      )).toList(),
+      questions: questionsList.map((q) => InteractiveQuiz.fromMap(q)).toList(),
     );
   }
 

@@ -11,6 +11,22 @@ class RecallQuestion {
     required this.options,
     required this.correctIndex,
   });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'question': question,
+      'options': options,
+      'correctIndex': correctIndex,
+    };
+  }
+
+  factory RecallQuestion.fromMap(Map<dynamic, dynamic> map) {
+    return RecallQuestion(
+      question: map['question'] ?? '',
+      options: List<String>.from(map['options'] ?? []),
+      correctIndex: map['correctIndex'] ?? 0,
+    );
+  }
 }
 
 class InteractiveQuiz {
@@ -27,6 +43,24 @@ class InteractiveQuiz {
     required this.explanation,
     this.selectedIndex,
   });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'question': question,
+      'options': options,
+      'correctIndex': correctIndex,
+      'explanation': explanation,
+    };
+  }
+
+  factory InteractiveQuiz.fromMap(Map<dynamic, dynamic> map) {
+    return InteractiveQuiz(
+      question: map['question'] ?? '',
+      options: List<String>.from(map['options'] ?? []),
+      correctIndex: map['correctIndex'] ?? 0,
+      explanation: map['explanation'] ?? '',
+    );
+  }
 
   InteractiveQuiz copyWith({int? selectedIndex}) {
     return InteractiveQuiz(
