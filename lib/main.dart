@@ -27,14 +27,19 @@ void main() async {
   try {
     FirebaseOptions? options;
     
-    // 1. Try Zero-Leak Environment Injection (Production/CI)
+    // 1. Try Zero-Leak Environment Injection (Production)
     if (_fbApiKey.isNotEmpty) {
-      options = const FirebaseOptions(
+      // Proactive Sanitization: Remove trailing slashes and child paths from DB URL
+      final sanitizedDbUrl = _fbDbUrl.endsWith('/') 
+          ? _fbDbUrl.substring(0, _fbDbUrl.length - 1) 
+          : _fbDbUrl;
+
+      options = FirebaseOptions(
         apiKey: _fbApiKey,
         appId: _fbAppId,
         messagingSenderId: _fbSenderId,
         projectId: _fbProjectId,
-        databaseURL: _fbDbUrl,
+        databaseURL: sanitizedDbUrl,
         authDomain: '$_fbProjectId.firebaseapp.com',
         storageBucket: '$_fbProjectId.firebasestorage.app',
       );
