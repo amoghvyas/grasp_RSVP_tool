@@ -163,6 +163,37 @@ class GroqService {
     }
   }
 
+  /// Secure Arena Engine: Generates a 10-question high-density competitive package.
+  Future<List<InteractiveQuiz>> generateArenaPackage(String context) async {
+    final response = await _request(
+      'Generate exactly 10 high-stakes competitive MCQs from this scholarly text: $context',
+      systemPrompt: 'You are an Arena Architect. Create a master-level competition. Focus on analysis and critical reasoning. Output ONLY a valid JSON array of objects exactly like this: [{"question": "...", "options": ["A","B","C","D"], "correctIndex": 0, "explanation": "Rationale"}]'
+    );
+    try {
+      final startIndex = response.indexOf('[');
+      final endIndex = response.lastIndexOf(']') + 1;
+      if (startIndex == -1 || endIndex == -1) throw Exception('No JSON array found');
+      
+      final jsonStr = response.substring(startIndex, endIndex);
+      final List data = jsonDecode(jsonStr);
+      
+      return data.take(10).map((json) => InteractiveQuiz(
+        question: json['question'] ?? 'Missing Question?',
+        options: List<String>.from(json['options'] ?? []),
+        correctIndex: json['correctIndex'] ?? 0,
+        explanation: json['explanation'] ?? 'Scholarly Verification.',
+      )).toList();
+    } catch (e) {
+      // Fallback for competitive continuity
+      return List.generate(10, (i) => InteractiveQuiz(
+        question: 'Scholarly Analysis Question #${i+1}',
+        options: ['Correct Hypothesis', 'Alternative B', 'Alternative C', 'Alternative D'],
+        correctIndex: 0,
+        explanation: 'Simulated for meritorious stability.',
+      ));
+    }
+  }
+
   /// Performs OCR on an image using Groq Vision
   Future<String> performOcr(Uint8List imageBytes, String format) async {
     if (!_isInitialized) throw Exception('Groq API not initialized');

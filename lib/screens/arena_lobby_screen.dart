@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../models/arena_model.dart';
+import '../providers/arena_provider.dart';
+import '../screens/arena_game_screen.dart';
 import '../widgets/apple_widgets.dart';
 
 class ArenaLobbyScreen extends StatelessWidget {
@@ -146,7 +148,10 @@ class ArenaLobbyScreen extends StatelessWidget {
           const SizedBox(height: 12),
           AppleButton(
             label: 'Start Competition',
-            onPressed: () {},
+            onPressed: () => Navigator.pushReplacement(
+              context, 
+              MaterialPageRoute(builder: (_) => ArenaGameScreen(roomId: roomId))
+            ),
             width: double.infinity,
           ),
         ],

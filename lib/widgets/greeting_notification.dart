@@ -12,7 +12,15 @@ class GreetingNotification {
     }
   }
 
-  static void _displayFloatingPill(BuildContext context, String message) {
+  static void showFeatureAnnouncement(BuildContext context) {
+    _displayFloatingPill(
+      context, 
+      "🚀 New: User-suggested Recap Intensity is live! (Special thanks to the anonymous scholar for the idea)",
+      duration: const Duration(seconds: 8),
+    );
+  }
+
+  static void _displayFloatingPill(BuildContext context, String message, {Duration duration = const Duration(seconds: 4)}) {
     final overlay = Overlay.of(context);
     late OverlayEntry entry;
 
@@ -30,8 +38,8 @@ class GreetingNotification {
 
     overlay.insert(entry);
     
-    // Auto-dismiss after 4 seconds
-    Timer(const Duration(seconds: 4), () {
+    // Auto-dismiss after specified duration
+    Timer(duration, () {
       if (entry.mounted) entry.remove();
     });
   }

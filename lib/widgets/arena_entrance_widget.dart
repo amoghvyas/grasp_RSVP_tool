@@ -4,7 +4,9 @@ import 'package:provider/provider.dart';
 import '../providers/arena_provider.dart';
 import '../providers/reader_provider.dart';
 import '../screens/arena_lobby_screen.dart';
+import '../services/groq_service.dart';
 import 'apple_widgets.dart';
+import 'arena_rules_modal.dart';
 
 class ArenaEntranceWidget extends StatelessWidget {
   const ArenaEntranceWidget({super.key});
@@ -46,13 +48,18 @@ class ArenaEntranceWidget extends StatelessWidget {
                   subtitle: 'Challenge your group using this document.',
                   icon: Icons.hub_rounded,
                   onPressed: reader.state.hasContent 
-                    ? () async {
-                      final id = await arena.hostCompetition(reader.state.fileName ?? 'Pasted Content', []);
+                    ? () => _showRules(context, () async {
+                      final groq = context.read<ReaderProvider>().groq;
+                      final id = await arena.hostCompetition(
+                        reader.state.fileName ?? 'Pasted Content', 
+                        reader.state.fullText,
+                        groq
+                      );
                        if (context.mounted) {
                         Navigator.push(context, MaterialPageRoute(builder: (_) => ArenaLobbyScreen(roomId: id)));
                       }
-                    }
-                    : null, 
+                    })
+                    : null,
                   isDark: isDark,
                 ),
               ),
@@ -62,13 +69,26 @@ class ArenaEntranceWidget extends StatelessWidget {
                   title: 'Join Arena',
                   subtitle: 'Enter a code to compete with others.',
                   icon: Icons.sports_esports_rounded,
-                  onPressed: () => _showJoinDialog(context),
+                  onPressed: () => _showRules(context, () => _showJoinDialog(context)),
                   isDark: isDark,
                 ),
               ),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  void _showRules(BuildContext context, VoidCallback onAccept) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => ArenaRulesModal(
+        onAccept: () {
+          Navigator.pop(context);
+          onAccept();
+        },
       ),
     );
   }

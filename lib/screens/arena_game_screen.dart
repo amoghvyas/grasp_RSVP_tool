@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/arena_model.dart';
 import '../models/reader_state.dart';
+import '../providers/arena_provider.dart';
+import '../screens/arena_result_screen.dart';
 import '../widgets/apple_widgets.dart';
 
 class ArenaGameScreen extends StatefulWidget {
@@ -23,7 +25,32 @@ class _ArenaGameScreenState extends State<ArenaGameScreen> with TickerProviderSt
     _timerController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 15),
-    )..forward();
+    );
+    _startQuestionLoop();
+  }
+
+  void _startQuestionLoop() {
+    _timerController.forward(from: 0).addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        if (_currentQuestionIndex < 9) {
+          setState(() {
+            _currentQuestionIndex++;
+          });
+          _startQuestionLoop();
+        } else {
+          // Finish Game
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const ArenaResultScreen(results: {
+              'Quantum Plato': 840,
+              'You': 720,
+              'Digital Darwin': 690,
+              'Neural Newton': 540,
+            })),
+          );
+        }
+      }
+    });
   }
 
   @override

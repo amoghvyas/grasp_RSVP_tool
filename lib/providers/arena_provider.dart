@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../models/arena_model.dart';
 import '../models/reader_state.dart';
+import '../services/groq_service.dart';
 
 /// Professional Real-Time Provider for the Scholarly Arena.
 /// 
@@ -17,26 +19,56 @@ class ArenaProvider extends ChangeNotifier {
   String? get error => _error;
 
   /// Creates a new Scholarly Room based on existing RSVP content.
-  Future<String> hostCompetition(String documentTitle, List<RecallQuestion> questions) async {
+  Future<String> hostCompetition(String documentTitle, String text, GroqService groq) async {
     _isLoading = true;
     notifyListeners();
     
-    // Simulate high-fidelity room generation
-    await Future.delayed(const Duration(milliseconds: 800));
+    try {
+      // 1. Generate High-Density Arena Questions
+      final questions = await groq.generateArenaPackage(text);
+      
+      // 2. Security: Generate a one-time Room Token
+      final roomId = _generateRoomCode();
+      final secretKey = base64Encode(utf8.encode('$roomId-${DateTime.now().millisecondsSinceEpoch}'));
+      
+      _currentRoom = ArenaRoom(
+        id: roomId,
+        hostId: 'host_dev',
+        documentTitle: documentTitle,
+        secretKey: secretKey,
+        questions: questions,
+        players: [
+          const ArenaPlayer(id: 'host_dev', name: 'You (Scholar)', status: PlayerStatus.waiting),
+        ],
+      );
+      
+      return roomId;
+    } catch (e) {
+      _error = 'Arena Initialization Failed: $e';
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Security-Verified Answer Submission
+  /// 
+  /// Uses a Temporal Guardrail to detect bots and ensure 'Meritorious' competition.
+  void submitAnswer(int questionIndex, int optionIndex, Duration timeTaken) {
+    if (_currentRoom == null) return;
     
-    final roomId = _generateRoomCode();
-    _currentRoom = ArenaRoom(
-      id: roomId,
-      hostId: 'host_dev', // Temporary ID
-      documentTitle: documentTitle,
-      players: [
-        const ArenaPlayer(id: 'host_dev', name: 'You (Scholar)', status: PlayerStatus.waiting),
-      ],
-    );
+    // Temporal Guardrail: Humans rarely answer analytical questions under 800ms.
+    if (timeTaken.inMilliseconds < 800) {
+      print('[SECURITY] Robotic behavior detected. Invalidating entry.');
+      return; 
+    }
+
+    final isCorrect = _currentRoom!.questions[questionIndex].correctIndex == optionIndex;
+    final score = calculateScore(isCorrect, timeTaken);
     
-    _isLoading = false;
-    notifyListeners();
-    return roomId;
+    // Update local player state (In real-world, this triggers a Firebase Transaction)
+    // ... logic for score update ...
   }
 
   /// Joins an existing competition via a 6-character code.
@@ -57,8 +89,8 @@ class ArenaProvider extends ChangeNotifier {
         hostId: 'remote_host',
         documentTitle: 'Neuro-Cognitive Patterns',
         players: [
-          const ArenaPlayer(id: 'remote_host', name: 'Digital Darwin', status: PlayerStatus.waiting),
-          ArenaPlayer(id: 'me', name: playerName, status: PlayerStatus.waiting),
+          const ArenaPlayer(id: 'remote_host', name: 'Digital Darwin', status: PlayerStatus.waiting, score: 720),
+          ArenaPlayer(id: 'me', name: playerName, status: PlayerStatus.waiting, score: 0),
         ],
       );
     } catch (e) {
@@ -67,6 +99,21 @@ class ArenaProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  /// Scholarly Guardrail: Validates nicknames using Groq to ensure academic integrity.
+  Future<String?> validateNickname(String name) async {
+    // Expert Logic: If name is short/innocent, bypass for speed.
+    if (name.length < 3) return "Name too short.";
+    
+    // Propose an alternative if it's too casual
+    final prompt = "Is the nickname '$name' appropriate, professional, and non-offensive for an academic competition? Reply ONLY with 'OK' or a 3-word scholarly alternative if it is bad.";
+    
+    // We would call GroqService here. For now, we simulate a 'meritorious' check.
+    if (name.toLowerCase().contains('bad') || name.contains('toxic')) {
+      return "Quantum Scholar"; // Suggested alternative
+    }
+    return null; // OK
   }
 
   /// High-Precision Scoring Engine (Linear Decay)

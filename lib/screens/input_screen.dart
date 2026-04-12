@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import '../providers/reader_provider.dart';
 import '../providers/theme_provider.dart';
 import '../widgets/apple_widgets.dart';
+import '../widgets/arena_entrance_widget.dart';
 import '../widgets/developer_overlay.dart';
 import '../widgets/dropzone_widget.dart';
 import '../widgets/focus_tools_overlay.dart';
@@ -96,6 +97,14 @@ class _InputScreenState extends State<InputScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      GreetingNotification.showFeatureAnnouncement(context);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final provider = context.watch<ReaderProvider>();
     final state = provider.state;
@@ -155,7 +164,9 @@ class _InputScreenState extends State<InputScreen> {
                         ],
                       ],
                       
-                      const SizedBox(height: 80),
+                      const ArenaEntranceWidget(),
+                      
+                      const SizedBox(height: 48),
                        AppleButton(
                         label: 'Meet the Developer',
                         isPrimary: false,
