@@ -148,7 +148,7 @@ class _DeveloperOverlayState extends State<DeveloperOverlay> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             _logoBtn(
-                              'https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png', 
+                              'https://cdn-icons-png.flaticon.com/512/25/25231.png', 
                               'https://github.com/amoghvyas',
                               isDark,
                             ),
