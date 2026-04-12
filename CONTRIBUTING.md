@@ -1,22 +1,18 @@
 # Contributing to Grasp Scholarly
 
-Thank you for your interest in contributing to **Grasp Scholarly**. We are building a high-precision ecosystem for academic absorption, and your expertise—whether in code, design, or research—is invaluable.
+Thank you for your interest in contributing to **Grasp Scholarly**. We are maintaining a framework for analytical information absorption, and your technical expertise is valued.
 
 ---
 
-## 🏛️ Our Mission
-To transform digital reading into a deep focus experience by combining scientifically-backed speed reading techniques with ultra-fast AI intelligence.
+## 🏛️ Our Objective
+To enhance the pre-analytical phase of research by providing a high-speed RSVP engine combined with deterministic AI synthesis tools.
 
-## ⚖️ Code Standards
+## ⚖️ Technical Standards
 
-### 1. Minimalist & Monochromatic
-We follow an Apple-inspired design philosophy. Avoid generic colors; use curated HSL palettes or macOS-grade tokens (e.g., `#0071E3` for emphasis, `#FF3B30` for scholarly guides).
+### 1. Functional Minimalism
+We adhere to a minimalist design philosophy centered on focus. Use curated HSL palettes or formal monochromatic tokens (e.g., `#0071E3` for emphasis) to minimize visual fatigue.
 
 ### 2. State Management
-Grasp uses **Provider + ChangeNotifier** for performance and simplicity.
-- Use the `copyWith` pattern for `ReaderState`.
-- Keep business logic in `Services` or `Providers`; keep `Widgets` focused on rendering.
-
 ### 3. AI Safety & Privacy
 - **Client-Side Only**: Never implement features that require a centralized database or track user identity.
 - **LPU Optimized**: Ensure all new AI features are compatible with Groq API structures.
