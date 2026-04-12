@@ -4,6 +4,8 @@ import 'package:firebase_database/firebase_database.dart';
 import '../models/arena_model.dart';
 
 class ArenaFirebaseService {
+  static const _dbUrl = String.fromEnvironment('FB_DB_URL');
+
   // Singleton pattern for Scholarly reliability
   static final ArenaFirebaseService _instance = ArenaFirebaseService._internal();
   factory ArenaFirebaseService() => _instance;
@@ -11,9 +13,14 @@ class ArenaFirebaseService {
 
   FirebaseDatabase get _db {
     try {
-      return FirebaseDatabase.instance;
+      // Force the regional database URL with a clean root-only trim
+      final cleanUrl = _dbUrl.trim().replaceAll(RegExp(r'/+$'), '');
+      return FirebaseDatabase.instanceFor(
+        app: Firebase.app(),
+        databaseURL: cleanUrl.isEmpty ? null : cleanUrl,
+      );
     } catch (e) {
-      throw 'Firebase not initialized. Please ensure your Scholarly Secrets (FB_ defines) are correctly set up in GitHub.';
+      throw 'Firebase connectivity failure. Please verify your Scholarly Secrets.';
     }
   }
 
