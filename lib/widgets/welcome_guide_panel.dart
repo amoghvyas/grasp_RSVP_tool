@@ -24,7 +24,7 @@ class WelcomeGuidePanel extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         SizedBox(
-          height: 140,
+          height: 170, // Expanded for scholarly multimodal descriptions
           child: ListView(
             scrollDirection: Axis.horizontal,
             children: [
