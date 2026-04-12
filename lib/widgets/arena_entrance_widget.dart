@@ -7,6 +7,7 @@ import '../screens/arena_lobby_screen.dart';
 import '../services/groq_service.dart';
 import 'apple_widgets.dart';
 import 'arena_rules_modal.dart';
+import 'scholarly_loader_overlay.dart';
 
 class ArenaEntranceWidget extends StatelessWidget {
   const ArenaEntranceWidget({super.key});
@@ -70,6 +71,7 @@ class ArenaEntranceWidget extends StatelessWidget {
                   icon: Icons.hub_rounded,
                   onPressed: reader.state.hasContent 
                     ? () => _showRules(context, () async {
+                      ScholarlyLoaderOverlay.show(context);
                       try {
                         final groq = context.read<ReaderProvider>().groq;
                         final id = await arena.hostCompetition(
@@ -78,10 +80,12 @@ class ArenaEntranceWidget extends StatelessWidget {
                           groq
                         );
                          if (context.mounted) {
+                          ScholarlyLoaderOverlay.hide(context);
                           Navigator.push(context, MaterialPageRoute(builder: (_) => ArenaLobbyScreen(roomId: id)));
                         }
                       } catch (e) {
                         if (context.mounted) {
+                          ScholarlyLoaderOverlay.hide(context);
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('Arena Error: $e'),
@@ -242,16 +246,21 @@ class _JoinArenaDialogState extends State<_JoinArenaDialog> {
               AppleButton(
                 label: 'Join Competition',
                 onPressed: () async {
+                  ScholarlyLoaderOverlay.show(context, message: 'Joining Arena...');
                   try {
                     await arena.joinCompetition(_codeController.text, _nameController.text);
-                    if (context.mounted && arena.error == null) {
-                      Navigator.pop(context);
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => ArenaLobbyScreen(roomId: _codeController.text)));
+                    if (context.mounted) {
+                      ScholarlyLoaderOverlay.hide(context);
+                      if (arena.error == null) {
+                        Navigator.pop(context);
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => ArenaLobbyScreen(roomId: _codeController.text)));
+                      }
                     }
                   } catch (e) {
                     if (context.mounted) {
+                      ScholarlyLoaderOverlay.hide(context);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Join Error: $e'), backgroundColor: Colors.redAccent),
+                        SnackBar(content: Text('Join Error: $e'), backgroundColor: Colors.redAccent, behavior: SnackBarBehavior.floating),
                       );
                     }
                   }
