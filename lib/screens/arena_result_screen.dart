@@ -1,16 +1,70 @@
-import 'dart:ui';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/apple_widgets.dart';
+// Note: We use a web-safe bridge for the actual download
+import 'dart:async';
+import 'dart:convert';
+// ignore: avoid_web_libraries_in_flutter
+import 'dart:html' as html;
 
-class ArenaResultScreen extends StatelessWidget {
-  final Map<String, int> results; // Name: Points
+class ArenaResultScreen extends StatefulWidget {
+  final Map<String, int> results;
   const ArenaResultScreen({super.key, required this.results});
+
+  @override
+  State<ArenaResultScreen> createState() => _ArenaResultScreenState();
+}
+
+class _ArenaResultScreenState extends State<ArenaResultScreen> {
+  final GlobalKey _certKey = GlobalKey();
+  bool _isDownloading = false;
+
+  Future<void> _downloadCertificate() async {
+    setState(() => _isDownloading = true);
+    
+    try {
+      // 1. Capture the High-Fidelity Rendering
+      RenderRepaintBoundary? boundary = _certKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+      if (boundary == null) throw 'Capture Boundary Null';
+      
+      // 3.0x Pixel Ratio for print-quality mastery
+      ui.Image image = await boundary.toImage(pixelRatio: 3.0);
+      ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      if (byteData == null) throw 'Byte Conversion Failed';
+      
+      final bytes = byteData.buffer.asUint8List();
+
+      // 2. Industrial Web Download Bridge
+      final blob = html.Blob([bytes]);
+      final url = html.Url.createObjectUrlFromBlob(blob);
+      final anchor = html.AnchorElement(href: url)
+        ..setAttribute("download", "Grasp_Scholarly_Mastery.png")
+        ..click();
+      
+      html.Url.revokeObjectUrl(url);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Mastery certificate archived successfully.'), behavior: SnackBarBehavior.floating),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Archival Interrupted: $e'), backgroundColor: Colors.redAccent, behavior: SnackBarBehavior.floating),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isDownloading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final sortedResults = results.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+    final sortedResults = widget.results.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
     
     return Scaffold(
       body: Stack(
@@ -51,15 +105,16 @@ class ArenaResultScreen extends StatelessWidget {
                       return Column(
                         children: [
                           AppleButton(
-                            label: 'Download Certificate',
-                            onPressed: () {},
+                            label: _isDownloading ? 'Archiving...' : 'Download Certificate',
+                            onPressed: _isDownloading ? null : _downloadCertificate,
+                            isLoading: _isDownloading,
                             icon: Icons.download_rounded,
                             width: isMobile ? double.infinity : null,
                           ),
                           const SizedBox(height: 16),
                           AppleButton(
                             label: 'Return to Home',
-                            onPressed: () => Navigator.pop(context),
+                            onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
                             isPrimary: false,
                             width: isMobile ? double.infinity : null,
                           ),
@@ -146,6 +201,7 @@ class ArenaResultScreen extends StatelessWidget {
 
   Widget _buildCertificateOfMastery(String name, int score, bool isDark) {
     return RepaintBoundary(
+      key: _certKey,
       child: Container(
         padding: const EdgeInsets.all(48),
         decoration: BoxDecoration(
