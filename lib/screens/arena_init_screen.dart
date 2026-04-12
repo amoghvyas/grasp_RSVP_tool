@@ -43,8 +43,8 @@ class _ArenaInitScreenState extends State<ArenaInitScreen> with SingleTickerProv
     final groq = context.read<ReaderProvider>().groq;
 
     try {
-      // Direct Optimistic Handshake
-      final id = await arena.hostCompetitionOptimistic(widget.title, widget.content, groq);
+      // Direct Optimistic Handshake with increased regional tolerance
+      final id = await arena.hostCompetitionOptimistic(widget.title, widget.content, groq).timeout(const Duration(seconds: 30));
       
       if (mounted) {
         Navigator.pushReplacement(
@@ -146,7 +146,7 @@ class _ArenaInitScreenState extends State<ArenaInitScreen> with SingleTickerProv
             const SizedBox(height: 12),
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Back to Repository'),
+              child: const Text('Back to Home'),
             ),
           ],
         ),

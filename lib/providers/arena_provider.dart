@@ -58,7 +58,7 @@ class ArenaProvider extends ChangeNotifier {
       );
 
       // Timeout protected Firebase Handshake
-      await _firebase.createRoom(shellRoom).timeout(const Duration(seconds: 15));
+      await _firebase.createRoom(shellRoom).timeout(const Duration(seconds: 30));
       _syncToRoom(roomId);
 
       // 2. Background Task: AI Synthesis
